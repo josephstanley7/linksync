@@ -284,5 +284,15 @@
   3. Keep the Quick Settings tile inactive until `ScreenRecorderService` actually starts, via an in-app `ACTION_RECORDING_STATE` broadcast. Do not request overlay permission at tap time (that would open Settings and break the 1-tap flow).
 * **Consequences:** The only UI the user sees is the system MediaProjection "Start now" dialog, then a short toast. Recording begins on top of the app they were already testing.
 
+---
+
+### ADR-020: Linux Cloud Agents keep the Windows JDK path and override it outside the repo
+* **Status:** Accepted
+* **Context:**  
+  `mobile/gradle.properties` pins `org.gradle.java.home` to the EliteBook's portable JDK 17 (`C:/Users/thenp/AppData/Local/Programs/jdk-17/jdk-17.0.20.1+1`). Cloud agents run on Linux, where that path does not exist, and AGP 8.8 / Gradle 8.11.1 need JDK 17. The POSIX Gradle wrapper script is not in the repo; `gradlew.bat` and `gradle/wrapper/gradle-wrapper.jar` are.
+* **Decision:**  
+  Leave the committed Windows `org.gradle.java.home` in place. On Linux, write the same property in `~/.gradle/gradle.properties` and pass `-Dorg.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64` when launching `org.gradle.wrapper.GradleWrapperMain`. Install OpenJDK 17, the .NET 9 SDK, and Android SDK platform 35 beside that, and build `LinkSync.Core` plus `:app:assembleDebug`. The WPF desktop project stays a Windows build.
+* **Consequences:** The laptop and cloud agents share one `gradle.properties`. Linux builds resolve JDK 17 without editing the file the EliteBook depends on.
+
 
 
