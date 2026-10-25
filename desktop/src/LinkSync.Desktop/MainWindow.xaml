@@ -3,260 +3,334 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="LinkSync — Phone-to-PC Hardware Continuity" 
         Icon="Resources/app.ico"
-        Height="720" Width="1060"
-        MinHeight="580" MinWidth="880"
+        Height="740" Width="1120"
+        MinHeight="600" MinWidth="960"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BrushCanvas}"
         FontFamily="{StaticResource FontPrimary}">
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="52"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
         <!-- ======================================================== -->
-        <!-- LEFT NAVIGATION RAIL (SURFACE L1)                         -->
+        <!-- TOP HEADER: PHONE LINK BRAND, STATUS & HORIZONTAL TABS   -->
         <!-- ======================================================== -->
-        <Border Grid.Column="0" Background="{StaticResource BrushSurface}" 
-                BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,1,0">
-            <Grid Margin="14,16,14,14">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/> <!-- App Brand Header -->
-                    <RowDefinition Height="Auto"/> <!-- Device Connectivity Card -->
-                    <RowDefinition Height="*"/>    <!-- Navigation Tabs -->
-                    <RowDefinition Height="Auto"/> <!-- Quick Actions & Telemetry -->
-                </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,0,1">
+            <Grid Margin="16,0,16,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Brand & Device Pill -->
+                    <ColumnDefinition Width="*"/>    <!-- Center Navigation Tabs -->
+                    <ColumnDefinition Width="Auto"/> <!-- Right Tools -->
+                </Grid.ColumnDefinitions>
 
-                <!-- 1. App Brand Header -->
-                <Grid Grid.Row="0" Margin="4,0,4,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    
-                    <Border Width="32" Height="32" CornerRadius="8" Background="{StaticResource BrushAccentSubtle}" 
+                <!-- 1. Brand & Hardware Continuity Pill -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="30" Height="30" CornerRadius="8" Background="{StaticResource BrushAccentSubtle}" 
                             BorderBrush="{StaticResource BrushAccent}" BorderThickness="1" Margin="0,0,10,0">
                         <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="15" 
                                    Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="LinkSync" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
+                    <Border Background="{StaticResource BrushCard}" CornerRadius="12" Padding="8,4" Margin="14,0,0,0" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Name="DotStatus" Width="8" Height="8" Fill="{StaticResource BrushWarning}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Name="TxtDeviceName" Text="Searching for Phone..." FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
+                            <TextBlock Text=" • " Foreground="{StaticResource BrushTextMuted}" VerticalAlignment="Center"/>
+                            <TextBlock Name="TxtDeviceSub" Text="Wi-Fi / USB" FontSize="11" Foreground="{StaticResource BrushAccentLight}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- 2. Phone Link Horizontal Tabs -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Name="BtnNavMessages" Style="{StaticResource TopNavTabButton}" Click="BtnNavMessages_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="LinkSync" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
-                            <Border Background="{StaticResource BrushAccentSubtle}" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="PRO" FontSize="9" FontWeight="Bold" Foreground="{StaticResource BrushAccentLight}"/>
-                            </Border>
-                        </StackPanel>
-                        <TextBlock Text="Folio 9470M Node • Local P2P" FontSize="11" Foreground="{StaticResource BrushTextMuted}"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- 2. Active Device Continuity Card -->
-                <Border Grid.Row="1" Background="{StaticResource BrushCard}" CornerRadius="8" Padding="12" Margin="0,0,0,14" 
-                        BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Hardware Vector Icon Container -->
-                        <Border Grid.Row="0" Grid.Column="0" Width="36" Height="36" CornerRadius="6" 
-                                Background="#1A202C" BorderBrush="#2D3748" BorderThickness="1" Margin="0,0,10,0">
-                            <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="18" 
-                                       Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-
-                        <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Name="TxtSidebarDeviceName" Text="Samsung Galaxy A17" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
-                            <TextBlock Text="One UI 6.0 Core • Android 14" FontSize="10" Foreground="{StaticResource BrushTextMuted}"/>
-                        </StackPanel>
-
-                        <!-- Live Status Indicator -->
-                        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,8,0,8" VerticalAlignment="Center">
-                            <Ellipse Name="DotSidebarStatus" Width="8" Height="8" Fill="{StaticResource BrushWarning}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBlock Name="TxtSidebarStatus" Text="Searching for Phone..." FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushWarning}"/>
-                        </StackPanel>
-
-                        <!-- Hardware Telemetry Pills -->
-                        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
-                            <Border Background="#12151C" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
-                                <TextBlock Name="TxtSidebarBattery" Text="Auto-Sync" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccess}"/>
-                            </Border>
-                            <Border Background="#12151C" CornerRadius="4" Padding="6,2">
-                                <TextBlock Name="TxtSidebarNet" Text="Wi-Fi / USB" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushAccentLight}"/>
-                            </Border>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- 3. Navigation Rail Items -->
-                <StackPanel Grid.Row="2" Orientation="Vertical">
-                    <Button Name="BtnNavOverview" Style="{StaticResource NavRailButton}" Background="#1C202B" Foreground="{StaticResource BrushAccentLight}" Click="BtnNavOverview_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE80F;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Overview" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                            <TextBlock Text="&#xE8BD;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Messages" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Name="BtnNavMessages" Style="{StaticResource NavRailButton}" Click="BtnNavMessages_Click">
+                    <Button Name="BtnNavCalls" Style="{StaticResource TopNavTabButton}" Click="BtnNavCalls_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8BD;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Messages &amp; SMS" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                            <TextBlock Text="&#xE717;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Calls" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Name="BtnNavCalls" Style="{StaticResource NavRailButton}" Click="BtnNavCalls_Click">
+                    <Button Name="BtnNavContacts" Style="{StaticResource TopNavTabButton}" Click="BtnNavContacts_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE717;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Calls &amp; Dialer" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                            <TextBlock Text="&#xE779;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Contacts" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Name="BtnNavContacts" Style="{StaticResource NavRailButton}" Click="BtnNavContacts_Click">
+                    <Button Name="BtnNavPhotos" Style="{StaticResource TopNavTabButton}" Click="BtnNavPhotos_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE779;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Contacts" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                            <TextBlock Text="&#xEB9F;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Photos" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Name="BtnNavPhotos" Style="{StaticResource NavRailButton}" Click="BtnNavPhotos_Click">
+                    <Button Name="BtnNavClipboard" Style="{StaticResource TopNavTabButton}" Click="BtnNavClipboard_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xEB9F;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Photos &amp; Screenshots" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Name="BtnNavClipboard" Style="{StaticResource NavRailButton}" Click="BtnNavClipboard_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Universal Clipboard" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Name="BtnNavVideo" Style="{StaticResource NavRailButton}" Click="BtnNavVideo_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE714;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Video Suite &amp; Trimmer" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Name="BtnNavAnnotator" Style="{StaticResource NavRailButton}" Click="BtnNavAnnotator_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE70F;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Image Annotator" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Name="BtnNavMirror" Style="{StaticResource NavRailButton}" Click="BtnNavMirror_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Phone Mirror (60 FPS)" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Name="BtnNavSettings" Style="{StaticResource NavRailButton}" Click="BtnNavSettings_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE713;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Settings &amp; Audio" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                            <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Clipboard" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
-                <!-- 4. Bottom Quick Actions & Hardware Node Telemetry -->
-                <StackPanel Grid.Row="3" Orientation="Vertical">
-                    <Button Name="BtnSidebarSnip" Style="{StaticResource SecondaryButton}" 
-                            FontSize="12" Margin="0,0,0,6" HorizontalContentAlignment="Center"
-                            Click="BtnSidebarSnip_Click">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="&#xE7C5;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushSuccess}"/>
-                            <TextBlock Text="Snip Screen" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                        </StackPanel>
+                <!-- 3. Top Right Utility Actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Name="BtnHeaderSnip" Style="{StaticResource HeaderIconButton}" ToolTip="Screen Snip (ShareX region capture)" Margin="0,0,4,0" Click="BtnQuickSnip_Click">
+                        <TextBlock Text="&#xE7C5;" FontFamily="{StaticResource FontIcons}" FontSize="14" Foreground="{StaticResource BrushSuccess}"/>
                     </Button>
 
-                    <Button Name="BtnSidebarRecord" Style="{StaticResource SecondaryButton}" 
-                            FontSize="12" Margin="0,0,0,8" HorizontalContentAlignment="Center"
-                            Click="BtnSidebarRecord_Click">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="&#xE714;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushDanger}"/>
-                            <TextBlock Text="Record Screen" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                        </StackPanel>
+                    <Button Name="BtnHeaderMirror" Style="{StaticResource HeaderIconButton}" ToolTip="Phone Mirror (60 FPS low-latency stream)" Margin="0,0,4,0" Click="BtnStartMirror_Click">
+                        <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="14" Foreground="{StaticResource BrushAccentLight}"/>
                     </Button>
 
-                    <TextBlock Name="TxtSystemTelemetry" Text="HP Folio 9470M • Port 54884" FontSize="10" Foreground="{StaticResource BrushTextMuted}" HorizontalAlignment="Center"/>
+                    <Button Name="BtnNavSettings" Style="{StaticResource HeaderIconButton}" ToolTip="Settings &amp; Hardware Configuration" Click="BtnNavSettings_Click">
+                        <TextBlock Text="&#xE713;" FontFamily="{StaticResource FontIcons}" FontSize="14" Foreground="{StaticResource BrushTextSecondary}"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- ======================================================== -->
-        <!-- RIGHT CONTENT AREA (DYNAMIC TAB VIEWS)                   -->
+        <!-- MAIN WORKSPACE: 3-COLUMN ERGONOMIC ARCHITECTURE          -->
         <!-- ======================================================== -->
-        <Grid Grid.Column="1" Margin="24,18,24,18">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Header Action Strip -->
-                <RowDefinition Height="*"/>    <!-- Active Tab Surface -->
-            </Grid.RowDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Top Header Action Strip -->
-            <Grid Grid.Row="0" Margin="0,0,0,16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- ==================================================== -->
+            <!-- COLUMN 0: PHONE IDENTITY CARD & NOTIFICATION STREAM  -->
+            <!-- ==================================================== -->
+            <Border Grid.Column="0" Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,1,0">
+                <Grid Margin="14,14,14,12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Interactive Phone Device Card -->
+                        <RowDefinition Height="Auto"/> <!-- Notifications Header Strip -->
+                        <RowDefinition Height="*"/>    <!-- Scrollable Live Notification Feed -->
+                        <RowDefinition Height="Auto"/> <!-- System Telemetry Footer -->
+                    </Grid.RowDefinitions>
 
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Name="TxtPageTitle" Text="Overview &amp; Hardware Continuity" FontSize="19" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
-                    <TextBlock Name="TxtHeaderSub" Text="Direct peer-to-peer connection • QuickSync acceleration enabled" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
-                </StackPanel>
+                    <!-- Phone Identity & Clickable Mirror Trigger Card -->
+                    <Border Grid.Row="0" Background="{StaticResource BrushCard}" CornerRadius="10" Padding="12" Margin="0,0,0,14" 
+                            BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Name="BtnOpenFolder" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnOpenFolder_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xED25;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Screenshots" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                            <!-- Clickable Miniature Phone Frame (Opens 60 FPS Mirror) -->
+                            <Button Grid.Row="0" Grid.Column="0" ToolTip="Click to open phone screen (60 FPS low latency)" 
+                                    Click="BtnStartMirror_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,10,0">
+                                <Border Width="42" Height="62" CornerRadius="8" Background="#141822" BorderBrush="{StaticResource BrushAccent}" BorderThickness="1.5">
+                                    <Grid>
+                                        <Border Width="12" Height="3" CornerRadius="1" Background="#334155" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,3,0,0"/>
+                                        <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="18" 
+                                                   Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="MIRROR" FontSize="7" FontWeight="Bold" Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                                    </Grid>
+                                </Border>
+                            </Button>
 
-                    <Button Name="BtnAdbTunnel" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnAdbTunnel_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xEC3E;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushAccentLight}"/>
-                            <TextBlock Text="USB ADB" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                            <!-- Device Identity -->
+                            <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Name="TxtSidebarDeviceName" Text="Samsung Galaxy A17" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="One UI Core • Android 14" FontSize="10" Foreground="{StaticResource BrushTextMuted}" Margin="0,1,0,0"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0" VerticalAlignment="Center">
+                                    <Ellipse Name="DotSidebarStatus" Width="7" Height="7" Fill="{StaticResource BrushWarning}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                    <TextBlock Name="TxtSidebarStatus" Text="Searching for Phone..." FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrushWarning}"/>
+                                </StackPanel>
+                            </StackPanel>
 
-                    <Button Name="BtnQuickMirror" Style="{StaticResource PrimaryButton}" Margin="0,0,6,0" Click="BtnStartMirror_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Mirror 60 FPS" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                            <!-- Battery & Network Telemetry Badges -->
+                            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,0">
+                                <Border Background="#12151C" CornerRadius="4" Padding="6,3" Margin="0,0,6,0">
+                                    <TextBlock Name="TxtSidebarBattery" Text="Auto-Sync" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushSuccess}"/>
+                                </Border>
+                                <Border Background="#12151C" CornerRadius="4" Padding="6,3">
+                                    <TextBlock Name="TxtSidebarNet" Text="Wi-Fi / USB" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushAccentLight}"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
-                    <Button Name="BtnQuickSnip" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnQuickSnip_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE7C5;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushSuccess}"/>
-                            <TextBlock Text="Snip" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <!-- Notifications Header Strip -->
+                    <Grid Grid.Row="1" Margin="2,0,2,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Notifications" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Name="BtnClearNotifications" Content="Clear all" Style="{StaticResource TopNavTabButton}" 
+                                FontSize="11" Foreground="{StaticResource BrushAccentLight}" Padding="4,2" Margin="0" Click="BtnClearNotifications_Click"/>
+                    </Grid>
 
-                    <Button Name="BtnQuickRecord" Style="{StaticResource SecondaryButton}" Click="BtnQuickRecord_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE714;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushDanger}"/>
-                            <TextBlock Text="Record" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Grid>
+                    <!-- Live Notification Feed -->
+                    <ListBox Grid.Row="2" Name="LstNotifications" Background="Transparent" BorderThickness="0" 
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,8"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border Name="NotificationCard" Background="{StaticResource BrushCard}" 
+                                                    BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" 
+                                                    CornerRadius="8" Padding="10,8">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="NotificationCard" Property="BorderBrush" Value="{StaticResource BrushCardBorderHover}"/>
+                                                    <Setter TargetName="NotificationCard" Property="Background" Value="{StaticResource BrushCardHover}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- App Icon -->
+                                    <Border Grid.Row="0" Grid.Column="0" Width="20" Height="20" CornerRadius="4" Background="#1D2330" Margin="0,0,8,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding AppIconGlyph}" FontFamily="{StaticResource FontIcons}" FontSize="11" Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <!-- App Header & Timestamp -->
+                                    <Grid Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding AppName}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushTextMuted}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding TimestampText}" FontSize="10" Foreground="{StaticResource BrushTextMuted}"/>
+                                    </Grid>
+
+                                    <!-- Notification Title & Body Text -->
+                                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,4,0,4">
+                                        <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Body}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" MaxHeight="34" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Inline Action Button -->
+                                    <Button Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource SecondaryButton}" 
+                                            HorizontalAlignment="Right" Padding="8,3" FontSize="11" Margin="0,2,0,0"
+                                            Tag="{Binding}" Click="NotificationAction_Click">
+                                        <TextBlock Text="{Binding ActionLabel}" FontWeight="SemiBold"/>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Telemetry Footer -->
+                    <TextBlock Grid.Row="3" Name="TxtSystemTelemetry" Text="Folio 9470M • Port 54884 • P2P" FontSize="10" Foreground="{StaticResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                </Grid>
+            </Border>
 
             <!-- ======================================================== -->
-            <!-- TAB 1: OVERVIEW & CONTINUITY DECK                        -->
+            <!-- COLUMN 1: RIGHT CONTENT AREA (TAB VIEWS)                 -->
             <!-- ======================================================== -->
-            <Grid Name="ViewOverview" Grid.Row="1" Visibility="Visible">
+            <Grid Grid.Column="1" Margin="20,16,20,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Page Subheader Strip -->
+                    <RowDefinition Height="*"/>    <!-- Active Tab Surface -->
+                </Grid.RowDefinitions>
+
+                <!-- Hidden Backing Elements for Internal Event Handlers -->
+                <Grid Visibility="Collapsed">
+                    <Button Name="BtnNavOverview" Click="BtnNavOverview_Click"/>
+                    <Button Name="BtnNavVideo" Click="BtnNavVideo_Click"/>
+                    <Button Name="BtnNavAnnotator" Click="BtnNavAnnotator_Click"/>
+                    <Button Name="BtnNavMirror" Click="BtnNavMirror_Click"/>
+                    <Button Name="BtnSidebarSnip" Click="BtnSidebarSnip_Click"/>
+                    <Button Name="BtnSidebarRecord" Click="BtnSidebarRecord_Click"/>
+                </Grid>
+
+                <!-- Page Subheader Strip -->
+                <Grid Grid.Row="0" Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Name="TxtPageTitle" Text="SMS &amp; Message Threads" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                        <TextBlock Name="TxtHeaderSub" Text="Read, compose, and send text messages through your Galaxy A17 SIM" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Name="BtnOpenFolder" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnOpenFolder_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xED25;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Folder" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Name="BtnAdbTunnel" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnAdbTunnel_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xEC3E;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushAccentLight}"/>
+                                <TextBlock Text="USB ADB" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Name="BtnQuickMirror" Style="{StaticResource PrimaryButton}" Margin="0,0,6,0" Click="BtnStartMirror_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Mirror 60 FPS" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Name="BtnQuickSnip" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnQuickSnip_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7C5;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushSuccess}"/>
+                                <TextBlock Text="Snip" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Name="BtnQuickRecord" Style="{StaticResource SecondaryButton}" Click="BtnQuickRecord_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE714;" FontFamily="{StaticResource FontIcons}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{StaticResource BrushDanger}"/>
+                                <TextBlock Text="Record" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ==================================================== -->
+                <!-- TAB 1: OVERVIEW (COLLAPSED BY DEFAULT)               -->
+                <!-- ==================================================== -->
+                <Grid Name="ViewOverview" Grid.Row="1" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Hero Continuity Deck -->
                     <RowDefinition Height="*"/>    <!-- 2x2 Balanced Action Matrix -->
@@ -281,11 +355,11 @@
                         <!-- Middle Continuity Status -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <Ellipse Name="DotStatus" Width="10" Height="10" Fill="{StaticResource BrushWarning}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Name="TxtDeviceName" Text="Searching for Galaxy A17 on Local Wi-Fi &amp; USB..." FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                <Ellipse Name="DotOverviewStatus" Width="10" Height="10" Fill="{StaticResource BrushWarning}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Name="TxtOverviewDeviceName" Text="Searching for Galaxy A17 on Local Wi-Fi &amp; USB..." FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
                             </StackPanel>
                             
-                            <TextBlock Name="TxtDeviceSub" Text="Ensure LinkSync is running on your phone or connect via USB cable." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="18,3,0,6"/>
+                            <TextBlock Name="TxtOverviewDeviceSub" Text="Ensure LinkSync is running on your phone or connect via USB cable." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="18,3,0,6"/>
 
                             <StackPanel Orientation="Horizontal" Margin="18,0,0,0">
                                 <Border Background="#12151C" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
@@ -451,7 +525,7 @@
             <!-- ======================================================== -->
             <!-- TAB: MESSAGES (TWO-PANE PHONE LINK LAYOUT)               -->
             <!-- ======================================================== -->
-            <Grid Name="ViewMessages" Grid.Row="1" Visibility="Collapsed">
+            <Grid Name="ViewMessages" Grid.Row="1" Visibility="Visible">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="320"/>
                     <ColumnDefinition Width="*"/>
@@ -1199,5 +1273,6 @@
             </Grid>
 
         </Grid>
+    </Grid>
     </Grid>
 </Window>

@@ -149,22 +149,30 @@ public partial class App : Application
         base.OnStartup(e);
         LogStartup("base.OnStartup completed successfully");
 
-        var mainWindow = new MainWindow();
-        MainWindow = mainWindow;
-        LogStartup($"MainWindow created. StartMinimized={StartMinimized}");
-
-        mainWindow.InitializeServices();
-
-        if (!StartMinimized)
+        try
         {
-            mainWindow.Show();
-            mainWindow.Activate();
-            LogStartup("mainWindow.Show() called");
+            var mainWindow = new MainWindow();
+            MainWindow = mainWindow;
+            LogStartup($"MainWindow created. StartMinimized={StartMinimized}");
+
+            mainWindow.InitializeServices();
+
+            if (!StartMinimized)
+            {
+                mainWindow.Show();
+                mainWindow.Activate();
+                LogStartup("mainWindow.Show() called");
+            }
+            else
+            {
+                mainWindow.TrimWorkingSet();
+                LogStartup("mainWindow trimmed to background");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            mainWindow.TrimWorkingSet();
-            LogStartup("mainWindow trimmed to background");
+            LogStartup($"FATAL EXCEPTION in new MainWindow(): {ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}\nInner: {ex.InnerException?.Message}");
+            throw;
         }
     }
 

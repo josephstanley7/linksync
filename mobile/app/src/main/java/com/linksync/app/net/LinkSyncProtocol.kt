@@ -27,6 +27,7 @@ object LinkSyncProtocol {
     const val OP_SMS_LIST_RESP: Short = 0x0046
     const val OP_CALL_STATE: Short = 0x0047
     const val OP_DEVICE_STATUS: Short = 0x0050
+    const val OP_LOCK_PC: Short = 0x0051
 
     fun writeFrame(out: OutputStream, opCode: Short, payload: ByteArray) {
         val header = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN)

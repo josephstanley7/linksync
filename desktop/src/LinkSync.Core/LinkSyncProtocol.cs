@@ -29,6 +29,7 @@ namespace LinkSync.Core
         public const ushort OpSmsListResp = 0x0046;
         public const ushort OpCallState = 0x0047;
         public const ushort OpDeviceStatus = 0x0050;
+        public const ushort OpLockPc = 0x0051;
 
         public record Frame(ushort OpCode, byte[] Payload);
 

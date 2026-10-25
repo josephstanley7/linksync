@@ -434,6 +434,33 @@
      - 100% of contacts, SMS messages, and call actions stay strictly between the phone and laptop over the local socket (`localhost:54884` / Wi-Fi).
 * **Consequences:** Near-instant 2FA verification (copy and paste `Ctrl + V` in 1 second), seamless SMS texting and phone calling from laptop, zero cloud accounts, and idle desktop RAM remains under 40 MB.
 
+---
+
+### ADR-027: Microsoft Phone Link Visual Hierarchy & Contextual Feature Architecture
+* **Status:** Accepted & Implemented ✅
+* **Context:**  
+  1. *Avoidance of Generic "AI Slop" Cards:* The user explicitly instructed to replicate Microsoft Phone Link's layout and ergonomics, avoiding arbitrary "overview cards" and feature dumps that neither Microsoft nor Apple would ever design.
+  2. *Contextual Access Over Feature Clutter:* Power tools (ShareX snip, screen recorder, image annotator, video suite) belong inside contextual surfaces (e.g. the Photos gallery toolbar, header quick-actions, and notification action triggers), while primary real estate is dedicated to communication and live notifications.
+  3. *Mobile Companion Ergonomics:* The mobile app needed to transition from a generic connection dashboard into a dedicated laptop companion matching Phone Link Slide 1 (laptop hero illustration, quick action matrix, and recent activity timeline).
+* **Alternatives Considered:**
+  1. *Dashboard with action tiles:* Clutters primary space and feels disjointed.
+  2. *Microsoft Phone Link 3-Column Desktop + Companion Mobile Architecture:* Industry-standard information architecture featuring top horizontal tabs (`Messages`, `Calls`, `Contacts`, `Photos`, `Clipboard`), a persistent left device rail with live notification stream and 1-click mirror bezel, and an ergonomic mobile companion with 1-tap `[ Lock PC ]`.
+* **Decision:**
+  1. **Desktop 3-Column Fluent Layout:**
+     - Top Fluent Header (52px): Brand icon, hardware status pill (`DotStatus`, `TxtDeviceName`), horizontal tab strip, and header quick tools (`BtnHeaderSnip`, `BtnHeaderMirror`, `BtnNavSettings`).
+     - Column 0 (280px Left Rail): Miniature phone bezel button launching 60 FPS floating scrcpy mirror directly upon click + battery & Wi-Fi telemetry + live notification feed (`LstNotifications`) with inline `[ Reply ]`, `[ Call Back ]`, `[ View ]`, `[ Copy ]` actions and "Clear all".
+     - Column 1: Subheader strip + dynamic tab views (`ViewMessages` active by default, `ViewCalls`, `ViewContacts`, `ViewPhotos`, `ViewClipboard`, `ViewVideo`, `ViewAnnotator`, `ViewMirror`, `ViewSettings`).
+  2. **Mobile Companion Layout:**
+     - Top profile header, centered Laptop Hero card (`imgLaptopHero`, `tvDeviceTitle`, live battery & transport status).
+     - 3-card quick action row: `[ Lock PC ]`, `[ Send files ]`, `[ Screen Tools ]`.
+     - "Recent" Activity card displaying recent syncs (files, clipboard items) with `···` action triggers.
+     - Grouped Navigation cards (`Received files & Gallery >`, `Universal Clipboard history >`).
+     - Compact connection status card with "DISCONNECT" pill button.
+  3. **Remote PC Lock Protocol (`OP_LOCK_PC` 0x0051):**
+     - Mobile `cardActionLock` triggers `ForegroundSyncService.sendLockPc()`.
+     - Desktop `SyncServer` receives `OpLockPc` and calls native Win32 `user32.dll!LockWorkStation()`.
+* **Consequences:** LinkSync achieves genuine big-tech grade visual craft and ergonomic cohesion on both Windows 10 and Android 13+, while maintaining strict < 40 MB idle RAM limits and zero cloud dependencies.
+
 
 
 

@@ -93,26 +93,37 @@ LinkSync brings the full screenshot power of **ShareX** to your Windows system t
 
 ---
 
-## Step 4: Redesigned Mobile & Desktop Interfaces
+## Step 4: Redesigned Mobile Companion & Desktop 3-Column Phone Link Interface
 
-### Mobile Navigation (Samsung One UI Style):
-* When you open LinkSync on your Samsung Galaxy A17, you are greeted with a clean, focused screen displaying **only the connection card** in the center:
-  * Green indicator dot and connected laptop name: `🟢 HP EliteBook Folio 9470M`.
-  * Minimalist `Disconnect` or `⚡ Connect to Laptop` action button.
-* At the bottom, a native **Bottom Navigation Bar** lets you switch between:
-  1. 🔗 **Connect:** The clean centered connection screen.
-  2. 📋 **Clipboard:** A Samsung DeX-style chronological history of all copied snippets with source badges (`📱 FROM PHONE` in cyan, `💻 FROM LAPTOP` in emerald), timestamps, and 1-tap `📋 Copy` buttons.
-  3. 📸 **Screenshots:** Browse all recent screenshots and screen recordings with 1-tap `▶ Open` and `⚡ Send to PC`.
-     * **Auto-Delete on PC Sync:** Optional switch to automatically remove screenshots from your phone once they are confirmed saved on your laptop. Keeps phone gallery storage clean.
-     * **2-on-a-Row Grid vs List:** Switch between `🔲 Grid` (arranged 2 per row with image previews and size badges) and `☰ List` view anytime.
-     * **Modern Tactile Buttons:** Redesigned high-contrast buttons (`▶ Open` and `⚡ Sync`) for instant interaction.
+### Mobile Companion Layout (Microsoft Phone Link Companion Style):
+* When you open LinkSync on your Samsung Galaxy A17, you see a clean, professional companion interface:
+  * **Top Profile Header:** Clean user avatar and branding.
+  * **Laptop Hero Card:** Centered laptop graphic with `HP EliteBook Folio 9470M` bold header, battery percentage (`100%`), and transport indicator (`Connected via USB Cable` or `Connected via Wi-Fi`).
+  * **3-Card Quick Action Row:**
+    * 🔒 **`Lock PC`:** Tap once to immediately lock your Windows laptop workstation (`LockWorkStation`).
+    * ✈️ **`Send files`:** Opens the file picker to beam any photo, PDF, or video to your laptop.
+    * 📱 **`Screen Tools`:** Launches the on-screen recorder and drawing tools.
+  * **Recent Activity Card:** Displays the latest synced recordings and copied clipboard snippets with quick `···` action menus.
+  * **Grouped Navigation Cards:** Fast access to `Received files & Gallery >` and `Universal Clipboard history >`.
+  * **Status Card:** Pinned status card with a one-tap `DISCONNECT` button.
+  * **Bottom Navigation Bar:** 4 pinned tabs: `Dashboard`, `Clipboard`, `Gallery`, and `Settings`.
 
-### Desktop Navigation (Microsoft Phone Link Style):
-* **Left Navigation Rail (240px):**
-  * Top device header with phone name (`Samsung Galaxy A17`), live connection status, and battery/network badges.
-  * Nav items: **Overview**, **Photos & Screenshots**, **Clipboard Stream**, **Video Suite**, and **Annotator**.
-  * Quick-snip button: **`📸 Snip Screen (ShareX)`** pinned at the bottom of the rail.
-* **Right View Area:** Smoothly displays whichever tab you select without bulky headers or window lag.
+### Desktop Navigation (Microsoft Phone Link 3-Column Fluent Layout):
+* **Top Header (52px):**
+  * Hardware Continuity status pill (`🟢 Galaxy A17 | Connected via USB/Wi-Fi`).
+  * Horizontal tabs: **`Messages`**, **`Calls`**, **`Contacts`**, **`Photos`**, and **`Clipboard`**.
+  * Quick Tool Icons: **Snip Screen**, **60 FPS Mirror**, and **Settings**.
+* **Left Rail (280px):**
+  * **Interactive Phone Bezel Thumbnail:** Shows live phone bezel; clicking it instantly launches the floating 60 FPS hardware mirror!
+  * **Live Telemetry:** Device model, battery status, and transport.
+  * **Live Notification Stream:** Real-time stack of incoming notifications with contextual action buttons:
+    * `[ Reply ]` for incoming SMS.
+    * `[ Call Back ]` for missed calls.
+    * `[ View ]` for newly captured screenshots.
+    * `[ Copy ]` for incoming clipboard text snippets.
+    * `Clear all` header action to dismiss all notifications.
+* **Master/Detail Content Area:**
+  * Displays two-pane SMS conversation threads with direct reply composer, digital telephone dialer, searchable contacts, and photo gallery with ShareX power tools.
 
 ---
 

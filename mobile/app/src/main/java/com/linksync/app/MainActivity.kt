@@ -67,6 +67,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val filePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            val nameIndex = cursor?.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME) ?: -1
+            cursor?.moveToFirst()
+            val displayName = if (nameIndex >= 0) cursor?.getString(nameIndex) else null
+            cursor?.close()
+            val fileName = displayName ?: "pushed_file_${System.currentTimeMillis()}"
+
+            ForegroundSyncService.sendMediaFileDirect(this, uri, fileName)
+            Toast.makeText(this, "⚡ Sending $fileName to laptop...", Toast.LENGTH_SHORT).show()
+            binding.tvRecentFileName.text = fileName
+            binding.tvRecentFileSub.text = "Sent to laptop Pictures/Downloads"
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -236,6 +254,35 @@ class MainActivity : AppCompatActivity() {
         // Auto-start sync service on launch
         checkPermissionsAndStart()
 
+        // Microsoft Phone Link Companion Quick Actions
+        binding.cardActionLock.setOnClickListener {
+            ForegroundSyncService.sendLockPc()
+            Toast.makeText(this, "💻 Locked laptop screen", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.cardActionSend.setOnClickListener {
+            filePickerLauncher.launch("*/*")
+        }
+
+        binding.cardActionCast.setOnClickListener {
+            val promptIntent = Intent(this, ScreenCapturePromptActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            startActivity(promptIntent)
+        }
+
+        binding.btnRecentSeeMore.setOnClickListener {
+            binding.bottomNavigation.selectedItemId = R.id.nav_screenshots
+        }
+
+        binding.cardNavReceived.setOnClickListener {
+            binding.bottomNavigation.selectedItemId = R.id.nav_screenshots
+        }
+
+        binding.cardNavClipboard.setOnClickListener {
+            binding.bottomNavigation.selectedItemId = R.id.nav_clipboard
+        }
+
         // Bottom Navigation Tab Switching
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -321,19 +368,22 @@ class MainActivity : AppCompatActivity() {
             ForegroundSyncService.connectionState.collect { state ->
                 if (state.isConnected) {
                     val name = if (state.desktopName.isNotEmpty()) state.desktopName else "HP EliteBook Folio 9470M"
+                    val isUsb = state.host == "127.0.0.1" || state.host.contains("localhost")
+                    binding.tvDeviceTitle.text = name
+                    binding.tvHeroStatus.text = "Connected via ${if (isUsb) "USB Cable" else "Local Wi-Fi"}"
                     binding.tvConnectionStatus.text = "🟢 $name"
                     binding.tvConnectionStatus.setTextColor(0xFF10B981.toInt()) // Emerald Green
-                    binding.tvDeviceDetails.text = state.lastSyncMessage.ifEmpty { "Connected & Syncing" }
-                    binding.tvFeaturePill.visibility = View.VISIBLE
+                    binding.tvDeviceDetails.text = state.lastSyncMessage.ifEmpty { "P2P socket active on port 54884" }
                     binding.btnConnect.text = "Disconnect"
                     binding.btnConnect.setBackgroundColor(0xFF334155.toInt())
                 } else {
+                    binding.tvDeviceTitle.text = "Searching for PC..."
+                    binding.tvHeroStatus.text = "Waiting for LinkSync on laptop..."
                     binding.tvConnectionStatus.text = "🟠 Searching for Laptop..."
                     binding.tvConnectionStatus.setTextColor(0xFFF59E0B.toInt()) // Amber
                     binding.tvDeviceDetails.text = state.lastSyncMessage.ifEmpty { "Open LinkSync on your laptop to connect" }
-                    binding.tvFeaturePill.visibility = View.GONE
                     binding.btnConnect.text = "⚡ Connect / Reconnect"
-                    binding.btnConnect.setBackgroundColor(0xFF2563EB.toInt())
+                    binding.btnConnect.setBackgroundColor(0xFF0284C7.toInt())
                 }
             }
         }
@@ -447,6 +497,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun renderClipboardHistory(items: List<ClipboardHistoryItem>) {
         binding.llClipboardHistory.removeAllViews()
+
+        if (items.isNotEmpty()) {
+            binding.tvRecentClipText.text = items.first().text.trim().replace("\n", " ")
+            binding.tvRecentClipSub.text = "Copied ${SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(items.first().timestamp))}"
+        } else {
+            binding.tvRecentClipText.text = "No clipboard history yet"
+            binding.tvRecentClipSub.text = "Copy text on either device"
+        }
 
         if (items.isEmpty()) {
             val emptyTv = TextView(this).apply {
@@ -579,6 +637,17 @@ class MainActivity : AppCompatActivity() {
 
         // Sort descending by last modified
         mediaFiles.sortByDescending { it.lastModified() }
+
+        if (mediaFiles.isNotEmpty()) {
+            val topFile = mediaFiles.first()
+            binding.tvRecentFileName.text = topFile.name
+            val sizeKb = topFile.length() / 1024
+            val sizeStr = if (sizeKb > 1024) String.format(Locale.US, "%.1f MB", sizeKb / 1024f) else "$sizeKb KB"
+            binding.tvRecentFileSub.text = "$sizeStr • ${SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(Date(topFile.lastModified()))}"
+        } else {
+            binding.tvRecentFileName.text = "No recent screenshots"
+            binding.tvRecentFileSub.text = "Take a screenshot to sync"
+        }
 
         if (mediaFiles.isEmpty()) {
             val emptyTv = TextView(this).apply {

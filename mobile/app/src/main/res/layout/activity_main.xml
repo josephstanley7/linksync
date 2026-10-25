@@ -29,10 +29,35 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp"
-                android:paddingTop="32dp"
+                android:paddingTop="24dp"
                 android:paddingBottom="24dp">
 
-                <!-- One UI 6 Viewing Zone Header -->
+                <!-- 1. Top Header Profile / User Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardBackgroundColor="#0284C7"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="1.5dp"
+                        app:strokeColor="#38BDF8">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="LS"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF" />
+                    </com.google.android.material.card.MaterialCardView>
+                </RelativeLayout>
+
+                <!-- 2. Centered Hardware Hero Deck (Matching Microsoft Phone Link Slide 1) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -40,35 +65,185 @@
                     android:gravity="center_horizontal"
                     android:layout_marginBottom="24dp">
 
-                    <TextView
-                        android:id="@+id/tvTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="LinkSync"
-                        android:textSize="32sp"
-                        android:textStyle="bold"
-                        android:textColor="#38BDF8"
-                        android:letterSpacing="-0.02" />
+                    <ImageView
+                        android:id="@+id/imgLaptopHero"
+                        android:layout_width="96dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ic_laptop_hero"
+                        android:contentDescription="Connected Laptop Illustration" />
 
                     <TextView
-                        android:id="@+id/tvSubtitle"
+                        android:id="@+id/tvDeviceTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Folio 9470M &lt;—&gt; Galaxy A17 Continuity Bridge"
-                        android:textSize="13sp"
-                        android:textColor="#94A3B8" />
+                        android:layout_marginTop="8dp"
+                        android:text="HP EliteBook Folio 9470M"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#F8FAFC" />
+
+                    <!-- Live Hardware Telemetry Row -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="4dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📶"
+                            android:textSize="12sp"
+                            android:layout_marginEnd="4dp" />
+
+                        <TextView
+                            android:id="@+id/tvHeroBattery"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🔋 100%"
+                            android:textSize="12sp"
+                            android:textColor="#94A3B8" />
+
+                        <View
+                            android:layout_width="4dp"
+                            android:layout_height="4dp"
+                            android:background="#64748B"
+                            android:layout_marginHorizontal="6dp" />
+
+                        <TextView
+                            android:id="@+id/tvHeroStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Connected via USB / Wi-Fi"
+                            android:textSize="12sp"
+                            android:textColor="#38BDF8" />
+                    </LinearLayout>
                 </LinearLayout>
 
-                <!-- One UI 6 Interaction Zone: Connection Hero Card (20dp squircle) -->
+                <!-- 3. Three-Card Quick Action Grid (Lock PC | Send files | Screen Tools) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    android:layout_marginBottom="20dp">
+
+                    <!-- Action 1: Lock PC -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardActionLock"
+                        android:layout_width="0dp"
+                        android:layout_height="90dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardBackgroundColor="#141722"
+                        app:strokeColor="#222632"
+                        app:strokeWidth="1dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="8dp">
+                            <ImageView
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_action_lock"
+                                app:tint="#38BDF8"
+                                android:contentDescription="Lock PC" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Lock PC"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="#F8FAFC" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Action 2: Send files -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardActionSend"
+                        android:layout_width="0dp"
+                        android:layout_height="90dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="3dp"
+                        app:cardBackgroundColor="#141722"
+                        app:strokeColor="#222632"
+                        app:strokeWidth="1dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="8dp">
+                            <ImageView
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_action_send"
+                                app:tint="#38BDF8"
+                                android:contentDescription="Send files" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Send files"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="#F8FAFC" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Action 3: Screen Tools -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardActionCast"
+                        android:layout_width="0dp"
+                        android:layout_height="90dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:cardBackgroundColor="#141722"
+                        app:strokeColor="#222632"
+                        app:strokeWidth="1dp"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="8dp">
+                            <ImageView
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_action_cast"
+                                app:tint="#38BDF8"
+                                android:contentDescription="Screen Tools" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Screen Tools"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="#F8FAFC" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <!-- 4. "Recent" Activity Feed Card (Grouped Container from Slide 1) -->
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardConnection"
+                    android:id="@+id/cardRecentActivity"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardBackgroundColor="#141722"
                     app:strokeColor="#222632"
                     app:strokeWidth="1dp"
-                    app:cardCornerRadius="20dp"
+                    app:cardCornerRadius="16dp"
                     app:cardElevation="0dp"
                     android:layout_marginBottom="16dp">
 
@@ -76,50 +251,271 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="22dp">
+                        android:padding="16dp">
 
-                        <!-- Live Status Header -->
+                        <!-- Header: Recent & See More -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Recent"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#F8FAFC" />
+
+                            <TextView
+                                android:id="@+id/btnRecentSeeMore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:text="See more"
+                                android:textSize="13sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textStyle="bold"
+                                android:textColor="#38BDF8" />
+                        </RelativeLayout>
+
+                        <!-- Recent Item 1: Latest Synced File -->
+                        <LinearLayout
+                            android:id="@+id/itemRecentFile"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:src="@drawable/ic_nav_screenshots"
+                                app:tint="#38BDF8"
+                                android:contentDescription="File icon" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvRecentFileName"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Latest Screenshot / Video"
+                                    android:textSize="13sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="#F8FAFC"
+                                    android:ellipsize="end"
+                                    android:singleLine="true" />
+
+                                <TextView
+                                    android:id="@+id/tvRecentFileSub"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Ready on laptop Pictures folder"
+                                    android:textSize="11sp"
+                                    android:textColor="#94A3B8" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/btnRecentFileAction"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="•••"
+                                android:textSize="16sp"
+                                android:textColor="#64748B"
+                                android:padding="6dp" />
+                        </LinearLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#222632"
+                            android:layout_marginVertical="4dp" />
+
+                        <!-- Recent Item 2: Latest Copied Clipboard Item -->
+                        <LinearLayout
+                            android:id="@+id/itemRecentClipboard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:src="@drawable/ic_nav_clipboard"
+                                app:tint="#A78BFA"
+                                android:contentDescription="Clipboard icon" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvRecentClipText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Clipboard auto-sync active"
+                                    android:textSize="13sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="#F8FAFC"
+                                    android:ellipsize="end"
+                                    android:singleLine="true" />
+
+                                <TextView
+                                    android:id="@+id/tvRecentClipSub"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Instant Ctrl + V between devices"
+                                    android:textSize="11sp"
+                                    android:textColor="#94A3B8" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/btnRecentClipAction"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="•••"
+                                android:textSize="16sp"
+                                android:textColor="#64748B"
+                                android:padding="6dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 5. Grouped Quick Navigation Cards (Slide 1 Archetype) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardNavReceived"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
+                    app:strokeWidth="1dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="10dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_nav_screenshots"
+                            app:tint="#38BDF8"
+                            android:contentDescription="Received files" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="14dp"
+                            android:text="Received files &amp; Gallery"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="#F8FAFC" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="#64748B"
+                            android:contentDescription="Open" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardNavClipboard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
+                    app:strokeWidth="1dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="16dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_nav_clipboard"
+                            app:tint="#A78BFA"
+                            android:contentDescription="Clipboard" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="14dp"
+                            android:text="Universal Clipboard history"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="#F8FAFC" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="#64748B"
+                            android:contentDescription="Open" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 6. Compact Device Connection Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardConnection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
+                    app:strokeWidth="1dp"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="12dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
                         <TextView
                             android:id="@+id/tvConnectionStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Searching for Laptop..."
-                            android:textSize="18sp"
+                            android:text="🟢 Connected: HP EliteBook Folio 9470M"
+                            android:textSize="14sp"
                             android:textStyle="bold"
-                            android:textColor="#F59E0B" />
-
-                        <!-- Status Detail Subtitle -->
+                            android:textColor="#10B981" />
                         <TextView
                             android:id="@+id/tvDeviceDetails"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="Waiting for LinkSync on laptop to open..."
-                            android:textSize="13sp"
-                            android:textColor="#94A3B8"
-                            android:lineSpacingExtra="2dp" />
-
-                        <!-- Active Features Telemetry Pill -->
-                        <TextView
-                            android:id="@+id/tvFeaturePill"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:background="#0A0C10"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="6dp"
-                            android:text="Auto Clipboard &amp; Screenshot Sync Active"
+                            android:layout_marginTop="3dp"
+                            android:text="P2P socket active on port 54884"
                             android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:textColor="#38BDF8"
-                            android:visibility="gone" />
+                            android:textColor="#94A3B8" />
 
                         <!-- Discovered Computers Selection Picker -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSelectPc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
+                            android:layout_marginTop="8dp"
                             android:text="Available Computers"
                             android:textSize="12sp"
                             android:textColor="#38BDF8"
@@ -129,68 +525,19 @@
                             android:minHeight="0dp"
                             android:visibility="gone" />
 
-                        <!-- Primary Action Button: Connect / Disconnect -->
+                        <!-- Connect / Disconnect Toggle Button -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnConnect"
                             android:layout_width="match_parent"
-                            android:layout_height="50dp"
-                            android:layout_marginTop="18dp"
-                            android:text="Connect to Laptop"
-                            android:backgroundTint="#0284C7"
-                            android:textColor="#FFFFFF"
-                            android:textSize="14sp"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="12dp"
+                            android:text="Disconnect"
+                            android:backgroundTint="#222632"
+                            android:textColor="#F8FAFC"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
                             android:textStyle="bold"
-                            app:cornerRadius="12dp" />
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- One UI 6 Quick Actions Card: Screen Recording & Drawing -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardBackgroundColor="#141722"
-                    app:strokeColor="#222632"
-                    app:strokeWidth="1dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp"
-                    android:layout_marginBottom="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Screen Recording &amp; Tools"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="#F8FAFC" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="Record screen with on-screen drawing overlay &amp; audio"
-                            android:textSize="12sp"
-                            android:textColor="#94A3B8" />
-
-                        <!-- Start Screen Recording Button -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnStartRecord"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:layout_marginTop="16dp"
-                            android:text="Start Screen Recording"
-                            android:backgroundTint="#EF4444"
-                            android:textColor="#FFFFFF"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="12dp" />
-
+                            app:cornerRadius="10dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -573,6 +920,19 @@
                             android:text="Gently shake phone to end recording with haptic vibration."
                             android:textColor="#64748B"
                             android:textSize="11sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStartRecord"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="18dp"
+                            android:text="⏺ Start Screen Recording"
+                            android:backgroundTint="#EF4444"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textStyle="bold"
+                            app:cornerRadius="12dp" />
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

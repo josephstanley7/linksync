@@ -28,6 +28,7 @@ namespace LinkSync.Desktop.Services
         public event Action<List<SmsMessageItem>>? SmsListReceived;
         public event Action<IncomingSmsNotification>? SmsReceived;
         public event Action<CallStateNotification>? CallStateChanged;
+        public event Action? LockPcRequested;
 
         public bool IsClientConnected => _currentClient?.Connected == true;
         public string SaveDirectory { get; set; }
@@ -188,6 +189,17 @@ namespace LinkSync.Desktop.Services
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"[SyncServer] Error parsing call state: {ex.Message}");
+                            }
+                            break;
+
+                        case LinkSyncProtocol.OpLockPc:
+                            try
+                            {
+                                LockPcRequested?.Invoke();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[SyncServer] Error handling lock PC: {ex.Message}");
                             }
                             break;
                     }

@@ -28,6 +28,9 @@ namespace LinkSync.Desktop
         private ScreenCaptureService _captureService = null!;
         private bool _isExplicitExit = false;
 
+        [DllImport("user32.dll")]
+        public static extern bool LockWorkStation();
+
         private string? _lastReceivedFromPhoneText = null;
         private DateTime _lastReceivedFromPhoneTime = DateTime.MinValue;
         private string? _lastSentToPhoneText = null;
@@ -42,6 +45,7 @@ namespace LinkSync.Desktop
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
         public ObservableCollection<ClipboardItemViewModel> ClipboardItems { get; } = new();
+        public ObservableCollection<NotificationItemViewModel> Notifications { get; } = new();
 
         public MainWindow()
         {
@@ -60,6 +64,7 @@ namespace LinkSync.Desktop
 
             LstMedia.ItemsSource = MediaItems;
             LstClipboard.ItemsSource = ClipboardItems;
+            LstNotifications.ItemsSource = Notifications;
 
             Closing += OnWindowClosing;
 
@@ -72,6 +77,7 @@ namespace LinkSync.Desktop
             _server.SmsListReceived += OnSmsListReceived;
             _server.SmsReceived += OnSmsReceived;
             _server.CallStateChanged += OnCallStateChanged;
+            _server.LockPcRequested += () => Dispatcher.Invoke(() => LockWorkStation());
 
             _clipboardWatcher = new Win32ClipboardWatcher();
             _clipboardWatcher.ClipboardTextChanged += OnLocalClipboardChanged;
@@ -88,6 +94,7 @@ namespace LinkSync.Desktop
             {
                 App.LogStartup($"Loaded event entered (StartMinimized={App.StartMinimized})");
                 InitializeServices();
+                SwitchTab(NavTab.Messages);
                 App.LogStartup("Loaded event completed");
             };
 
@@ -467,6 +474,20 @@ namespace LinkSync.Desktop
                     ClipboardItems.RemoveAt(ClipboardItems.Count - 1);
                 }
 
+                Notifications.Insert(0, new NotificationItemViewModel
+                {
+                    AppName = "Clipboard",
+                    AppIconGlyph = "\uE8C8",
+                    AppIconColor = "#34D399",
+                    Title = "Copied from Phone",
+                    Body = text.Length > 60 ? text.Substring(0, 60) + "..." : text,
+                    TimestampText = DateTime.Now.ToString("HH:mm"),
+                    ActionLabel = "Copy",
+                    ActionType = "copy",
+                    AssociatedData = text
+                });
+                while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
+
                 if (!IsVisible)
                 {
                     string preview = text.Length > 40 ? text.Substring(0, 40) + "..." : text;
@@ -562,6 +583,20 @@ namespace LinkSync.Desktop
                 {
                     MediaItems.RemoveAt(MediaItems.Count - 1);
                 }
+
+                Notifications.Insert(0, new NotificationItemViewModel
+                {
+                    AppName = isImage ? "Photos" : "Video Suite",
+                    AppIconGlyph = isImage ? "\uEB9F" : "\uE714",
+                    AppIconColor = isImage ? "#38BDF8" : "#C084FC",
+                    Title = isImage ? "Screenshot Received" : "Screen Recording Received",
+                    Body = $"{fileName} ({(data.Length > 1024 ? data.Length / 1024 : 1)} KB)",
+                    TimestampText = DateTime.Now.ToString("HH:mm"),
+                    ActionLabel = "View",
+                    ActionType = "view",
+                    AssociatedData = savedPath
+                });
+                while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
 
                 // Show notification in Windows System Tray!
                 if (isImage)
@@ -815,11 +850,52 @@ namespace LinkSync.Desktop
             }
         }
 
-        private void ResetNavButton(Button btn, bool isActive)
+        private void ResetNavButton(Button? btn, bool isActive)
         {
-            btn.Background = isActive ? (Brush)FindResource("BrushCardHover") : Brushes.Transparent;
+            if (btn == null) return;
+            btn.Background = isActive ? (Brush)FindResource("BrushAccentSubtle") : Brushes.Transparent;
             btn.Foreground = isActive ? (Brush)FindResource("BrushAccentLight") : (Brush)FindResource("BrushTextSecondary");
-            btn.FontWeight = isActive ? FontWeights.SemiBold : FontWeights.Medium;
+            btn.FontWeight = isActive ? FontWeights.Bold : FontWeights.SemiBold;
+        }
+
+        private void BtnClearNotifications_Click(object sender, RoutedEventArgs e)
+        {
+            Notifications.Clear();
+        }
+
+        private void NotificationAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is NotificationItemViewModel notif)
+            {
+                switch (notif.ActionType)
+                {
+                    case "reply":
+                        SwitchTab(NavTab.Messages);
+                        if (!string.IsNullOrEmpty(notif.AssociatedData))
+                        {
+                            TxtSmsSearch.Text = notif.AssociatedData;
+                        }
+                        break;
+                    case "call":
+                        SwitchTab(NavTab.Calls);
+                        if (!string.IsNullOrEmpty(notif.AssociatedData))
+                        {
+                            TxtDialNumber.Text = notif.AssociatedData;
+                        }
+                        break;
+                    case "copy":
+                        if (!string.IsNullOrEmpty(notif.AssociatedData))
+                        {
+                            Clipboard.SetDataObject(notif.AssociatedData, true);
+                            _trayManager.ShowBalloon("📋 Copied", "Text copied to clipboard");
+                        }
+                        break;
+                    case "view":
+                    default:
+                        SwitchTab(NavTab.Photos);
+                        break;
+                }
+            }
         }
 
         private void BtnNavOverview_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Overview);
@@ -1072,6 +1148,21 @@ namespace LinkSync.Desktop
                     ScrollSmsMessages.ScrollToEnd();
                 }
 
+                // Live notification in sidebar
+                Notifications.Insert(0, new NotificationItemViewModel
+                {
+                    AppName = "Messages",
+                    AppIconGlyph = "\uE8BD",
+                    AppIconColor = "#38BDF8",
+                    Title = sms.Address,
+                    Body = sms.Body,
+                    TimestampText = DateTime.Now.ToString("HH:mm"),
+                    ActionLabel = "Reply",
+                    ActionType = "reply",
+                    AssociatedData = sms.Address
+                });
+                while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
+
                 // Refresh thread list from mobile node
                 _ = _server.RequestSmsListAsync();
             });
@@ -1083,6 +1174,23 @@ namespace LinkSync.Desktop
             {
                 if (call.State == "RINGING" || call.State == "OFFHOOK")
                 {
+                    if (call.State == "RINGING")
+                    {
+                        Notifications.Insert(0, new NotificationItemViewModel
+                        {
+                            AppName = "Calls",
+                            AppIconGlyph = "\uE717",
+                            AppIconColor = "#F59E0B",
+                            Title = "Incoming Call",
+                            Body = string.IsNullOrWhiteSpace(call.Number) ? "Galaxy A17" : call.Number,
+                            TimestampText = DateTime.Now.ToString("HH:mm"),
+                            ActionLabel = "Call Back",
+                            ActionType = "call",
+                            AssociatedData = call.Number
+                        });
+                        while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
+                    }
+
                     CardActiveCall.Visibility = Visibility.Visible;
                     TxtActiveCallNumber.Text = string.IsNullOrWhiteSpace(call.Number)
                         ? (string.IsNullOrWhiteSpace(TxtDialNumber.Text) ? "Calling on Galaxy A17..." : TxtDialNumber.Text)
@@ -1714,5 +1822,19 @@ namespace LinkSync.Desktop
         public string Number { get; set; } = string.Empty;
         public bool Starred { get; set; }
         public string Initials { get; set; } = string.Empty;
+    }
+
+    public class NotificationItemViewModel
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string AppName { get; set; } = "Messages";
+        public string AppIconGlyph { get; set; } = "\uE8BD";
+        public string AppIconColor { get; set; } = "#38BDF8";
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+        public string TimestampText { get; set; } = DateTime.Now.ToString("t");
+        public string ActionLabel { get; set; } = "View";
+        public string ActionType { get; set; } = "view"; // "reply", "call", "copy", "view"
+        public string AssociatedData { get; set; } = string.Empty;
     }
 }

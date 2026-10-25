@@ -108,6 +108,21 @@ class ForegroundSyncService : Service() {
             }
         }
 
+        fun sendLockPc() {
+            activeInstance?.get()?.let { service ->
+                service.scope.launch(Dispatchers.IO) {
+                    service.socket?.let { s ->
+                        try {
+                            LinkSyncProtocol.writeFrame(s.getOutputStream(), LinkSyncProtocol.OP_LOCK_PC, ByteArray(0))
+                            Log.i("LinkSyncService", "Dispatched OP_LOCK_PC to desktop")
+                        } catch (e: Exception) {
+                            Log.e("LinkSyncService", "Failed to send OP_LOCK_PC: ${e.message}")
+                        }
+                    }
+                }
+            }
+        }
+
         fun sendClipboardDirect(text: String) {
             activeInstance?.get()?.sendClipboardInternal(text)
         }
