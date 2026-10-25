@@ -327,3 +327,24 @@ flowchart LR
    * Implements `--turn-screen-off` and `--stay-awake` using Android's low-level display power state controls (`cmd display power-off`).
    * The phone's AMOLED screen is completely shut down, eliminating heat generation and battery drain while the video encoder continues capturing the virtual display compositor buffer seamlessly.
 
+---
+
+## 7. UI/UX Design System & Architectural Hierarchy
+
+### A. Desktop (C# .NET 9 WPF — Raycast / Linear Standard):
+* **Layered Obsidian Palette:** Canvas (`#0A0C10`), Surface (`#12141A`), Card (`#181B22`), Card Hover (`#222834`), Borders (`#222632`).
+* **Vector Iconography:** Zero emoji dependency. Windows 10 native `Segoe MDL2 Assets` vector glyphs mapped to standard Unicode code points (`\uE80F`, `\uEB9F`, `\uE8C8`, `\uE714`, `\uE70F`, `\uE8EA`, `\uE713`, `\uE7C5`).
+* **Spatial Ergonomics:**
+  * 250px Left Navigation Rail with connected device hardware badge and quick snip/record triggers.
+  * Hero Continuity Deck displaying vector device silhouette, connection state, battery level, transport pills, and 1-click mirror launch.
+  * 2×2 Balanced Action Matrix (Screen Capture, Image Annotator, Video Suite, Universal Clipboard).
+  * Dedicated 4-panel Settings & Hardware Decode view (`ViewSettings`).
+* **Tactile Motion Physics:** 120ms cubic-bezier transition curves with subtle `scale(0.98)` downscale upon click.
+
+### B. Mobile (Kotlin Android — Samsung One UI 6 Standard):
+* **Viewing Zone vs. Interaction Zone Split:**
+  * Upper 25%: Non-interactive viewing zone with large branding, connection state, and telemetry.
+  * Lower 75%: Thumb-reachable interaction zone housing 20dp squircle focus cards.
+* **Bottom Navigation Architecture:** 4-tab pinned `BottomNavigationView` (Dashboard, Clipboard, Gallery, Settings) using Material XML vector drawables.
+* **Dedicated Settings View (`layoutSettings`):** Isolates recording audio toggles, ghost overlay visibility, shake-to-stop gesture sensitivity, and device profiles from the primary connection screen.
+

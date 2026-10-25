@@ -243,19 +243,29 @@ class MainActivity : AppCompatActivity() {
                     binding.layoutConnect.visibility = View.VISIBLE
                     binding.layoutClipboard.visibility = View.GONE
                     binding.layoutScreenshots.visibility = View.GONE
+                    binding.layoutSettings.visibility = View.GONE
                     true
                 }
                 R.id.nav_clipboard -> {
                     binding.layoutConnect.visibility = View.GONE
                     binding.layoutClipboard.visibility = View.VISIBLE
                     binding.layoutScreenshots.visibility = View.GONE
+                    binding.layoutSettings.visibility = View.GONE
                     true
                 }
                 R.id.nav_screenshots -> {
                     binding.layoutConnect.visibility = View.GONE
                     binding.layoutClipboard.visibility = View.GONE
                     binding.layoutScreenshots.visibility = View.VISIBLE
+                    binding.layoutSettings.visibility = View.GONE
                     loadPhoneMediaFiles()
+                    true
+                }
+                R.id.nav_settings -> {
+                    binding.layoutConnect.visibility = View.GONE
+                    binding.layoutClipboard.visibility = View.GONE
+                    binding.layoutScreenshots.visibility = View.GONE
+                    binding.layoutSettings.visibility = View.VISIBLE
                     true
                 }
                 else -> false

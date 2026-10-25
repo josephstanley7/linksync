@@ -388,17 +388,24 @@
 ---
 
 ### ADR-025: System-Wide UI/UX Makeover (Linear/Raycast Desktop & Samsung One UI 6 Mobile)
-* **Status:** In Progress 🎨
+* **Status:** Accepted & Implemented ✅
 * **Context:**  
-  1. *The "AI Card Soup" Problem:* The previous desktop overview stacked 5 identical rounded boxes with inconsistent padding, competing button colors, and random emoji prefixes (`📸`, `🎬`, `✏️`, `📁`, `⚡`), giving the interface an uncrafted, AI-generated appearance.
-  2. *Lack of Ergonomic Hierarchy on Mobile:* The mobile screen lacked the clear division between viewing and interaction areas defined by Samsung One UI 6, making one-handed thumb interaction difficult.
+  1. *The "AI Card Soup" Problem:* The previous desktop overview stacked 5 vertical rounded boxes with inconsistent padding, competing button colors, and random emoji prefixes (`📸`, `🎬`, `✏️`, `📁`, `⚡`), giving the interface an uncrafted, AI-generated appearance.
+  2. *Lack of Ergonomic Hierarchy on Mobile:* The mobile screen lacked the clear division between viewing and interaction areas defined by Samsung One UI 6, making one-handed thumb interaction difficult, and lacked a dedicated Settings page.
 * **Alternatives Considered:**
   1. *Generic Tailwind / Material Kits:* Often leads directly back into the "AI slop" centroid with pastel purple gradients, oversized rounded corners, and cookie-cutter cards.
-  2. *Raycast / Linear Aesthetic (Desktop) + Samsung One UI 6 (Mobile):* A purposeful, engineered design system using deep obsidian charcoal (`#0D0E11`), micro-borders (`1px rgba(255,255,255,0.08)`), precision sky accents (`#0284C7`), crisp monochrome vector glyphs (`Segoe MDL2 Assets` / Android Vector Drawables), and clear spatial continuity.
+  2. *Raycast / Linear Aesthetic (Desktop) + Samsung One UI 6 (Mobile):* A purposeful, engineered design system using deep obsidian charcoal (`#0A0C10`), micro-borders (`1px #222632`), cobalt precision sky accents (`#0284C7`), crisp monochrome vector glyphs (`Segoe MDL2 Assets` / Android Vector Drawables), 120ms tactile scale animations (`scale(0.98)` on click), and clear spatial continuity.
 * **Decision:**
-  1. **Desktop:** Refactor to a structured 240px Left Command Rail, a top Hardware Continuity Deck, and a 2×2 Command Matrix for Live Workspace, Capture, Media, and Slicing. Eliminate all emoji button prefixes in favor of Segoe MDL2 vector icons.
-  2. **Mobile:** Implement Samsung One UI 6 screen architecture with a top Viewing Zone and lower Interaction Zone using 20dp squircle focus blocks.
-* **Consequences:** Both applications look and feel like bespoke, high-craft hardware continuity software (rivaling Apple Continuity and Samsung Smart Switch).
+  1. **Desktop:**
+     - Created `Themes/DesignTokens.xaml` defining L0-L3 surface tokens, typography scale, keycap badges, and button styles.
+     - Refactored `MainWindow.xaml` to feature a 250px Left Navigation Rail, an elevated Hero Hardware Continuity Deck, and a 2×2 Balanced Action Matrix (Screen Capture, Image Annotator, Video Suite, Universal Clipboard).
+     - Added a dedicated 4-panel Settings & Hardware Decode view (`ViewSettings`): Storage directory browser, Windows startup toggle, Intel QuickSync hardware status, and USB ADB diagnostics.
+     - Replaced all emoji prefixes with native Windows `Segoe MDL2 Assets` vector glyphs (`&#xE80F;`, `&#xEB9F;`, `&#xE8C8;`, `&#xE714;`, `&#xE70F;`, `&#xE8EA;`, `&#xE713;`, `&#xE7C5;`).
+  2. **Mobile:**
+     - Restructured `activity_main.xml` to follow Samsung One UI 6 ergonomics: top 25% Viewing Zone (large typography, status summary) and lower 75% Interaction Zone (20dp squircle focus blocks).
+     - Added Material XML vector drawables (`ic_nav_settings.xml`, `ic_nav_mirror.xml`) for crisp, non-emoji vector icons.
+     - Added a 4th tab to the pinned bottom navigation bar: **Settings** (`layoutSettings`), housing microphone audio toggles, always-ask popup preferences, ghost overlay isolation, shake-to-stop sensitivity, and device profiles.
+* **Consequences:** Both applications feel bespoke, high-craft, and native to their respective platforms (Windows 10 / Samsung One UI 6), eliminating all AI-generated tells while preserving 100% of the underlying high-performance C# / Kotlin engines.
 
 
 

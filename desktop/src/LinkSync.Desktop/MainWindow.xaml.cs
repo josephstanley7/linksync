@@ -31,6 +31,7 @@ namespace LinkSync.Desktop
         private DateTime _lastReceivedFromPhoneTime = DateTime.MinValue;
         private string? _lastSentToPhoneText = null;
         private DateTime _lastSentToPhoneTime = DateTime.MinValue;
+        private bool _autoPasteClipboard = true;
 
         private const string StartupRegKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
         private const string AppRegName = "LinkSync";
@@ -126,6 +127,12 @@ namespace LinkSync.Desktop
             TxtHeaderSub.Text = $"HP EliteBook Folio 9470M <—> Galaxy A17 | Auto-Discovery Active (Wi-Fi & USB)";
 
             LoadExistingMediaFiles();
+
+            // Populate Settings Tab controls
+            TxtSettingsSaveDir.Text = _server.SaveDirectory;
+            TxtSettingsAdbPath.Text = AdbTunnelManager.ResolvedAdbPath ?? "Resolved via PATH";
+            ChkRunOnStartup.IsChecked = IsRunOnStartupEnabled();
+            ChkAutoPasteClipboard.IsChecked = _autoPasteClipboard;
 
             // Auto-establish ADB tunnel and watch for device connection
             _adbManager.StartWatchdog(() => _server.IsClientConnected, TimeSpan.FromSeconds(3));
@@ -345,7 +352,8 @@ namespace LinkSync.Desktop
                 TxtSidebarDeviceName.Text = $"{handshake.DeviceManufacturer} {handshake.DeviceName}";
                 TxtSidebarStatus.Text = "Connected & Syncing";
                 DotSidebarStatus.Fill = new SolidColorBrush(Color.FromRgb(16, 185, 129));
-                TxtSidebarBattery.Text = "🔋 Active";
+                TxtSidebarBattery.Text = "Connected";
+                TxtSidebarNet.Text = "Wi-Fi / USB";
             });
         }
 
@@ -360,7 +368,8 @@ namespace LinkSync.Desktop
 
                 TxtSidebarStatus.Text = "Searching for Phone...";
                 DotSidebarStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11));
-                TxtSidebarBattery.Text = "🔋 Waiting";
+                TxtSidebarBattery.Text = "Waiting";
+                TxtSidebarNet.Text = "Searching";
             });
         }
 
@@ -496,7 +505,7 @@ namespace LinkSync.Desktop
                 bool isImage = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp";
                 string fileName = Path.GetFileName(savedPath);
 
-                if (isImage)
+                if (isImage && _autoPasteClipboard)
                 {
                     // Copy image directly to Windows Clipboard with retry loop against external app locks!
                     for (int attempt = 0; attempt < 10; attempt++)
@@ -724,7 +733,7 @@ namespace LinkSync.Desktop
             }
         }
 
-        public enum NavTab { Overview, Photos, Clipboard, Video, Annotator, Mirror }
+        public enum NavTab { Overview, Photos, Clipboard, Video, Annotator, Mirror, Settings }
 
         private void SwitchTab(NavTab tab)
         {
@@ -734,6 +743,7 @@ namespace LinkSync.Desktop
             ViewVideo.Visibility = tab == NavTab.Video ? Visibility.Visible : Visibility.Collapsed;
             ViewAnnotator.Visibility = tab == NavTab.Annotator ? Visibility.Visible : Visibility.Collapsed;
             ViewMirror.Visibility = tab == NavTab.Mirror ? Visibility.Visible : Visibility.Collapsed;
+            ViewSettings.Visibility = tab == NavTab.Settings ? Visibility.Visible : Visibility.Collapsed;
 
             ResetNavButton(BtnNavOverview, tab == NavTab.Overview);
             ResetNavButton(BtnNavPhotos, tab == NavTab.Photos);
@@ -741,24 +751,38 @@ namespace LinkSync.Desktop
             ResetNavButton(BtnNavVideo, tab == NavTab.Video);
             ResetNavButton(BtnNavAnnotator, tab == NavTab.Annotator);
             ResetNavButton(BtnNavMirror, tab == NavTab.Mirror);
+            ResetNavButton(BtnNavSettings, tab == NavTab.Settings);
 
             TxtPageTitle.Text = tab switch
             {
-                NavTab.Overview => "Overview & Hardware Status",
+                NavTab.Overview => "Overview & Hardware Continuity",
                 NavTab.Photos => "Photos & Synced Screenshots",
                 NavTab.Clipboard => "Universal Clipboard Stream",
                 NavTab.Video => "Video Suite & Animated GIF Maker",
                 NavTab.Annotator => "ShareX-Grade Image Annotator",
                 NavTab.Mirror => "Real-Time Phone Mirror & Remote Control",
+                NavTab.Settings => "Settings & System Preferences",
                 _ => "LinkSync"
+            };
+
+            TxtHeaderSub.Text = tab switch
+            {
+                NavTab.Overview => "Direct peer-to-peer connection • QuickSync acceleration enabled",
+                NavTab.Photos => "Double-click item to edit in Image Annotator or Video Suite",
+                NavTab.Clipboard => "Two-way clipboard stream with instant local auto-paste",
+                NavTab.Video => "Lossless keyframe video trimmer and Lanczos animated GIF creator",
+                NavTab.Annotator => "Arrows, step badges, blur redactions, and Samsung Galaxy frames",
+                NavTab.Mirror => "60 FPS low-latency stream with mouse clicks and physical keyboard typing",
+                NavTab.Settings => "Storage directories, Windows startup, and hardware decode configuration",
+                _ => "HP EliteBook Folio 9470M Node"
             };
         }
 
         private void ResetNavButton(Button btn, bool isActive)
         {
-            btn.Background = isActive ? new SolidColorBrush(Color.FromRgb(30, 41, 59)) : Brushes.Transparent;
-            btn.Foreground = isActive ? new SolidColorBrush(Color.FromRgb(56, 189, 248)) : new SolidColorBrush(Color.FromRgb(148, 163, 184));
-            btn.FontWeight = isActive ? FontWeights.Bold : FontWeights.Medium;
+            btn.Background = isActive ? (Brush)FindResource("BrushCardHover") : Brushes.Transparent;
+            btn.Foreground = isActive ? (Brush)FindResource("BrushAccentLight") : (Brush)FindResource("BrushTextSecondary");
+            btn.FontWeight = isActive ? FontWeights.SemiBold : FontWeights.Medium;
         }
 
         private void BtnNavOverview_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Overview);
@@ -767,6 +791,7 @@ namespace LinkSync.Desktop
         private void BtnNavVideo_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Video);
         private void BtnNavAnnotator_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Annotator);
         private void BtnNavMirror_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Mirror);
+        private void BtnNavSettings_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Settings);
 
         private void BtnSidebarSnip_Click(object sender, RoutedEventArgs e) => _captureService.CaptureRegion();
         private void BtnQuickSnip_Click(object sender, RoutedEventArgs e) => _captureService.CaptureRegion();
@@ -780,6 +805,49 @@ namespace LinkSync.Desktop
         private void BtnQuickRecord_Click(object sender, RoutedEventArgs e) => StartRegionScreenRecording();
         private void BtnFullscreenRecord_Click(object sender, RoutedEventArgs e) => StartFullscreenScreenRecording();
         private void BtnClearClipboardDesktop_Click(object sender, RoutedEventArgs e) => ClipboardItems.Clear();
+
+        private void BtnChangeSaveDir_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title = "Select LinkSync Save Directory",
+                InitialDirectory = _server.SaveDirectory
+            };
+
+            if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.FolderName))
+            {
+                _server.SaveDirectory = dialog.FolderName;
+                TxtSettingsSaveDir.Text = dialog.FolderName;
+                LoadExistingMediaFiles();
+            }
+        }
+
+        private void ChkRunOnStartup_Click(object sender, RoutedEventArgs e)
+        {
+            SetRunOnStartup(ChkRunOnStartup.IsChecked == true);
+        }
+
+        private void ChkAutoPasteClipboard_Click(object sender, RoutedEventArgs e)
+        {
+            _autoPasteClipboard = ChkAutoPasteClipboard.IsChecked == true;
+        }
+
+        private async void BtnResetAdb_Click(object sender, RoutedEventArgs e)
+        {
+            BtnResetAdb.IsEnabled = false;
+            BtnResetAdb.Content = "Resetting ADB Tunnel...";
+            bool ok = await _adbManager.EnsureReverseTunnelAsync();
+            BtnResetAdb.IsEnabled = true;
+            BtnResetAdb.Content = "Reset / Force USB ADB Tunnel (Port 54884)";
+            if (ok)
+            {
+                MessageBox.Show("USB ADB Reverse Tunnel established successfully!\n(Phone port 54884 is now bridged to laptop)", "LinkSync ADB Tunnel", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show($"Could not establish reverse tunnel.\nPlease verify USB debugging is authorized and phone is connected.\nADB Path: {AdbTunnelManager.ResolvedAdbPath}", "LinkSync", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
 
         private async Task StartPhoneMirroringAsync(bool turnScreenOff)
         {
@@ -824,24 +892,24 @@ namespace LinkSync.Desktop
             {
                 if (isActive)
                 {
-                    BtnStartMirror.Content = "⏹ Stop Mirroring";
-                    BtnStartMirror.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68));
-                    BtnQuickMirror.Content = "⏹ Stop Mirror";
-                    BtnQuickMirror.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68));
-                    BtnTabStartMirror.Content = "⏹ Stop Mirror";
-                    BtnTabStartMirror.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+                    BtnStartMirror.Content = "Stop Mirroring";
+                    BtnStartMirror.Background = (Brush)FindResource("BrushDanger");
+                    BtnQuickMirror.Content = "Stop Mirror";
+                    BtnQuickMirror.Background = (Brush)FindResource("BrushDanger");
+                    BtnTabStartMirror.Content = "Stop Mirror";
+                    BtnTabStartMirror.Background = (Brush)FindResource("BrushDanger");
                     BadgeMirrorActive.Visibility = Visibility.Visible;
                     BadgeMirrorInactive.Visibility = Visibility.Collapsed;
-                    _trayManager.ShowBalloon("📱 Phone Mirror Active", "Streaming Samsung Galaxy A17 at 60 FPS (Hardware QuickSync H.264).\nMouse and keyboard control active! Press Alt+O to turn screen off.");
+                    _trayManager.ShowBalloon("Phone Mirror Active", "Streaming Samsung Galaxy A17 at 60 FPS (Hardware QuickSync H.264).\nMouse and keyboard control active! Press Alt+O to turn screen off.");
                 }
                 else
                 {
-                    BtnStartMirror.Content = "📱 Start Mirroring";
-                    BtnStartMirror.Background = new SolidColorBrush(Color.FromRgb(2, 132, 199));
-                    BtnQuickMirror.Content = "📱 Mirror (60 FPS)";
-                    BtnQuickMirror.Background = new SolidColorBrush(Color.FromRgb(2, 132, 199));
-                    BtnTabStartMirror.Content = "📱 Launch Mirror";
-                    BtnTabStartMirror.Background = new SolidColorBrush(Color.FromRgb(2, 132, 199));
+                    BtnStartMirror.Content = "Mirror Screen (60 FPS)";
+                    BtnStartMirror.Background = (Brush)FindResource("BrushAccent");
+                    BtnQuickMirror.Content = "Mirror 60 FPS";
+                    BtnQuickMirror.Background = (Brush)FindResource("BrushAccent");
+                    BtnTabStartMirror.Content = "Launch Mirror";
+                    BtnTabStartMirror.Background = (Brush)FindResource("BrushAccent");
                     BadgeMirrorActive.Visibility = Visibility.Collapsed;
                     BadgeMirrorInactive.Visibility = Visibility.Visible;
                 }

@@ -304,6 +304,31 @@ During long phone testing or mirroring sessions, keeping the phone's physical sc
 
 ---
 
+## Step 9: Navigating the Redesigned User Interface (Big-Tech Standard)
+
+LinkSync features a modern, bespoke user interface designed according to the highest standards of Apple Continuity, Samsung One UI 6, and Linear:
+
+### Laptop (Windows 10 / .NET 9 WPF):
+* **Left Navigation Rail (250px):** Clean vertical navigation using native vector glyphs (Home, Photos, Clipboard, Video, Annotator, Phone Mirror, Settings).
+* **Hero Continuity Deck:** At the top of the Overview screen, an elevated hardware card displays your connected Samsung Galaxy A17 silhouette, live battery status, Wi-Fi/USB transport pills, and instant 1-click 60 FPS mirror buttons.
+* **2×2 Balanced Action Matrix:**
+  * **Screen Capture & Snip:** Region snip, active window snip, full-screen snip.
+  * **Image Annotator:** Step badges (①, ②, ③), vector arrows, blur/pixelate redactions, and 1-tap phone mockups.
+  * **Video Suite & Screen Recording:** Region and fullscreen desktop recording, lossless keyframe cutting, and high-FPS animated GIF generation.
+  * **Universal Clipboard Stream:** Two-way clipboard synchronization with auto-paste controls.
+* **Dedicated Settings & Audio Tab:** Change storage folders, toggle auto-copying to clipboard, configure Windows startup, and inspect Intel QuickSync GPU acceleration.
+
+### Mobile Phone (Samsung One UI 6):
+* **One UI 6 Viewing Zone (Top 25%):** Clean typography and high-contrast status summary.
+* **One UI 6 Interaction Zone (Bottom 75%):** Ergonomic 20dp squircle focus cards placed within easy reach of your thumb.
+* **4-Tab Bottom Navigation Bar:**
+  1. **Dashboard:** Hardware connection card, active PC picker, and quick record launcher.
+  2. **Clipboard:** Live stream of copied items with timestamped cards and 1-tap re-copy.
+  3. **Gallery:** Synced screenshots and video recordings with Grid and List views and auto-delete settings.
+  4. **Settings:** Dedicated settings page with microphone audio toggle, always-ask popup preference, ghost overlay isolation, shake-to-stop sensitivity, and device hardware profile.
+
+---
+
 ## Frequently Asked Questions & Troubleshooting (FAQ)
 
 #### Q: The laptop says "Searching for Phone" and won't turn green. What should I do?

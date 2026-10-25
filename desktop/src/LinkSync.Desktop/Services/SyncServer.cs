@@ -26,7 +26,7 @@ namespace LinkSync.Desktop.Services
         public event Action<string, byte[]>? MediaReceived;
 
         public bool IsClientConnected => _currentClient?.Connected == true;
-        public string SaveDirectory { get; }
+        public string SaveDirectory { get; set; }
 
         public SyncServer(int port = 54884)
         {

@@ -4,58 +4,73 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="#0F172A">
+    android:background="#0A0C10">
 
-    <!-- Container Frame for the 3 Tab Views -->
+    <!-- Container Frame for the 4 Tab Views -->
     <FrameLayout
         android:id="@+id/contentFrame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottomNavigation">
 
-        <!-- TAB 1: CONNECTION (CENTERED HERO VIEW - DEFAULT) -->
+        <!-- ======================================================== -->
+        <!-- TAB 1: DASHBOARD & CONTINUITY HERO (ONE UI 6 VIEWING/INTERACTION) -->
+        <!-- ======================================================== -->
         <ScrollView
             android:id="@+id/layoutConnect"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true"
+            android:overScrollMode="never"
             android:visibility="visible">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center"
-                android:padding="24dp">
+                android:paddingHorizontal="20dp"
+                android:paddingTop="32dp"
+                android:paddingBottom="24dp">
 
-                <TextView
-                    android:id="@+id/tvTitle"
-                    android:layout_width="wrap_content"
+                <!-- One UI 6 Viewing Zone Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="LinkSync"
-                    android:textSize="34sp"
-                    android:textStyle="bold"
-                    android:textColor="#38BDF8" />
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:layout_marginBottom="24dp">
 
-                <TextView
-                    android:id="@+id/tvSubtitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Folio 9470M &lt;—&gt; Galaxy A17 Local Bridge"
-                    android:textSize="13sp"
-                    android:textColor="#94A3B8" />
+                    <TextView
+                        android:id="@+id/tvTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LinkSync"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        android:textColor="#38BDF8"
+                        android:letterSpacing="-0.02" />
 
-                <!-- Centered Modern Connection Status Card -->
+                    <TextView
+                        android:id="@+id/tvSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Folio 9470M &lt;—&gt; Galaxy A17 Continuity Bridge"
+                        android:textSize="13sp"
+                        android:textColor="#94A3B8" />
+                </LinearLayout>
+
+                <!-- One UI 6 Interaction Zone: Connection Hero Card (20dp squircle) -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardConnection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="28dp"
-                    app:cardBackgroundColor="#1E293B"
-                    app:strokeColor="#334155"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
                     app:strokeWidth="1dp"
-                    app:cardCornerRadius="20dp">
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -63,12 +78,12 @@
                         android:orientation="vertical"
                         android:padding="22dp">
 
-                        <!-- Status Dot & Connected Name -->
+                        <!-- Live Status Header -->
                         <TextView
                             android:id="@+id/tvConnectionStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🟠 Searching for Laptop..."
+                            android:text="Searching for Laptop..."
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="#F59E0B" />
@@ -81,18 +96,19 @@
                             android:layout_marginTop="6dp"
                             android:text="Waiting for LinkSync on laptop to open..."
                             android:textSize="13sp"
-                            android:textColor="#94A3B8" />
+                            android:textColor="#94A3B8"
+                            android:lineSpacingExtra="2dp" />
 
-                        <!-- Active Features Pill -->
+                        <!-- Active Features Telemetry Pill -->
                         <TextView
                             android:id="@+id/tvFeaturePill"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
-                            android:background="#0F172A"
+                            android:background="#0A0C10"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="6dp"
-                            android:text="⚡ Auto Clipboard &amp; Screenshot Sync Active"
+                            android:text="Auto Clipboard &amp; Screenshot Sync Active"
                             android:textSize="11sp"
                             android:textStyle="bold"
                             android:textColor="#38BDF8"
@@ -104,7 +120,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="💻 Available Computers"
+                            android:text="Available Computers"
                             android:textSize="12sp"
                             android:textColor="#38BDF8"
                             style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -113,83 +129,32 @@
                             android:minHeight="0dp"
                             android:visibility="gone" />
 
-                        <!-- Action Button: Connect / Disconnect -->
+                        <!-- Primary Action Button: Connect / Disconnect -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnConnect"
                             android:layout_width="match_parent"
                             android:layout_height="50dp"
                             android:layout_marginTop="18dp"
-                            android:text="⚡ Connect to Laptop"
-                            android:backgroundTint="#2563EB"
+                            android:text="Connect to Laptop"
+                            android:backgroundTint="#0284C7"
                             android:textColor="#FFFFFF"
-                            android:textSize="15sp"
+                            android:textSize="14sp"
                             android:textStyle="bold"
                             app:cornerRadius="12dp" />
-
-                        <!-- Advanced Settings Collapsible Toggle -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnToggleSettings"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:layout_gravity="center_horizontal"
-                            android:text="⚙️ Advanced Network Settings"
-                            android:textSize="11sp"
-                            android:textColor="#64748B"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
-                            android:padding="0dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp" />
-
-                        <!-- Collapsible Advanced Settings (Hidden by default) -->
-                        <LinearLayout
-                            android:id="@+id/layoutAdvancedSettings"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginTop="6dp"
-                            android:visibility="gone">
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                app:boxBackgroundColor="#0F172A"
-                                app:boxStrokeColor="#38BDF8"
-                                app:hintTextColor="#38BDF8">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/etTargetHost"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:hint="Manual IP (Optional - Auto-Discovery is Active)"
-                                    android:textColor="#F8FAFC"
-                                    android:textSize="13sp"
-                                    android:singleLine="true" />
-                            </com.google.android.material.textfield.TextInputLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp"
-                                android:text="💡 LinkSync auto-connects over local Wi-Fi, Hotspot, and USB cable."
-                                android:textSize="11sp"
-                                android:textColor="#64748B" />
-                        </LinearLayout>
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Screen Recording Preferences Card -->
+                <!-- One UI 6 Quick Actions Card: Screen Recording & Drawing -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
                     app:strokeWidth="1dp"
-                    app:strokeColor="#334155"
-                    app:cardBackgroundColor="#0F172A">
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -200,99 +165,18 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📹 Screen Recording Preferences"
-                            android:textSize="17sp"
+                            android:text="Screen Recording &amp; Tools"
+                            android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#F1F5F9" />
+                            android:textColor="#F8FAFC" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Audio settings and clean video options"
+                            android:layout_marginTop="3dp"
+                            android:text="Record screen with on-screen drawing overlay &amp; audio"
                             android:textSize="12sp"
                             android:textColor="#94A3B8" />
-
-                        <com.google.android.material.divider.MaterialDivider
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="12dp"
-                            app:dividerColor="#1E293B" />
-
-                        <!-- Audio Choice Toggle -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchRecordAudio"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="🎙️ Record with Audio (Microphone)"
-                            android:textColor="#F8FAFC"
-                            android:textSize="14sp"
-                            android:checked="true" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:text="Capture voice narration &amp; explanations. Turn off for silent video."
-                            android:textColor="#64748B"
-                            android:textSize="11sp" />
-
-                        <!-- Always Ask Audio Choice Toggle -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchAlwaysAskAudio"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="❓ Ask Audio Choice Every Time"
-                            android:textColor="#F8FAFC"
-                            android:textSize="14sp"
-                            android:checked="false" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:text="Show audio selection popup each time you tap Record."
-                            android:textColor="#64748B"
-                            android:textSize="11sp" />
-
-                        <!-- Hide Floating Bubble Toggle -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchHideBubble"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="👻 Hide Bubble in Recorded Video"
-                            android:textColor="#F8FAFC"
-                            android:textSize="14sp"
-                            android:checked="true" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:text="Keeps the floating controller out of the recording for clean video."
-                            android:textColor="#64748B"
-                            android:textSize="11sp" />
-
-                        <!-- Shake Phone to Stop Toggle -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchShakeToStop"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="📳 Shake Phone to Stop Recording"
-                            android:textColor="#F8FAFC"
-                            android:textSize="14sp"
-                            android:checked="true" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:text="Gently shake phone to end recording without pulling notification bar."
-                            android:textColor="#64748B"
-                            android:textSize="11sp" />
 
                         <!-- Start Screen Recording Button -->
                         <com.google.android.material.button.MaterialButton
@@ -300,12 +184,12 @@
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
                             android:layout_marginTop="16dp"
-                            android:text="⏺ Start Screen Recording"
+                            android:text="Start Screen Recording"
                             android:backgroundTint="#EF4444"
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
                             android:textStyle="bold"
-                            app:cornerRadius="10dp" />
+                            app:cornerRadius="12dp" />
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -313,13 +197,16 @@
             </LinearLayout>
         </ScrollView>
 
-        <!-- TAB 2: CLIPBOARD HISTORY VIEW -->
+        <!-- ======================================================== -->
+        <!-- TAB 2: CLIPBOARD HISTORY STREAM (ONE UI 6)              -->
+        <!-- ======================================================== -->
         <LinearLayout
             android:id="@+id/layoutClipboard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="28dp"
             android:visibility="gone">
 
             <!-- Clipboard Header -->
@@ -339,15 +226,16 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📋 Clipboard History"
-                        android:textSize="22sp"
+                        android:text="Clipboard Stream"
+                        android:textSize="24sp"
                         android:textStyle="bold"
-                        android:textColor="#F1F5F9" />
+                        android:textColor="#F8FAFC" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Two-way synchronized clipboard stream"
+                        android:layout_marginTop="2dp"
+                        android:text="Two-way synchronized DeX clipboard bridge"
                         android:textSize="12sp"
                         android:textColor="#94A3B8" />
                 </LinearLayout>
@@ -356,8 +244,8 @@
                     android:id="@+id/btnClearClipboard"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="🗑 Clear"
-                    android:textSize="11sp"
+                    android:text="Clear"
+                    android:textSize="12sp"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:textColor="#EF4444" />
             </LinearLayout>
@@ -366,24 +254,28 @@
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fillViewport="true">
+                android:fillViewport="true"
+                android:overScrollMode="never">
 
                 <LinearLayout
                     android:id="@+id/llClipboardHistory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" />
+                    android:orientation="vertical"
+                    android:paddingBottom="24dp" />
             </ScrollView>
         </LinearLayout>
 
-        <!-- TAB 3: SCREENSHOTS GALLERY VIEW -->
+        <!-- ======================================================== -->
+        <!-- TAB 3: SCREENSHOTS & RECORDINGS GALLERY (ONE UI 6)      -->
+        <!-- ======================================================== -->
         <LinearLayout
             android:id="@+id/layoutScreenshots"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
-            android:paddingTop="16dp"
+            android:paddingTop="24dp"
             android:visibility="gone">
 
             <!-- Screenshots Header -->
@@ -392,7 +284,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -403,16 +295,16 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📸 Screenshots"
-                        android:textSize="20sp"
+                        android:text="Synced Media"
+                        android:textSize="22sp"
                         android:textStyle="bold"
-                        android:textColor="#F1F5F9" />
+                        android:textColor="#F8FAFC" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Auto-synced with HP Folio 9470M"
+                        android:text="Synced automatically with HP Folio 9470M"
                         android:textSize="11sp"
                         android:textColor="#94A3B8" />
                 </LinearLayout>
@@ -432,7 +324,7 @@
                         android:layout_height="28dp"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
-                        android:text="🔲 Grid"
+                        android:text="Grid"
                         android:textSize="12sp"
                         android:textStyle="bold"
                         android:textColor="#FFFFFF"
@@ -446,7 +338,7 @@
                         android:layout_height="28dp"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
-                        android:text="☰ List"
+                        android:text="List"
                         android:textSize="12sp"
                         android:textColor="#94A3B8"
                         android:background="@android:color/transparent"
@@ -460,28 +352,28 @@
                     android:layout_height="34dp"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
-                    android:layout_marginStart="6dp"
+                    android:layout_marginStart="8dp"
                     android:padding="0dp"
-                    android:text="🔄"
-                    android:textSize="12sp"
+                    android:text="Sync"
+                    android:textSize="11sp"
                     android:textColor="#38BDF8"
-                    app:backgroundTint="#0B132B"
-                    app:strokeColor="#334155"
+                    app:backgroundTint="#141722"
+                    app:strokeColor="#222632"
                     app:strokeWidth="1dp"
                     app:cornerRadius="8dp"
                     style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
             </LinearLayout>
 
-            <!-- Feature 13: Auto-Delete on PC Sync Toggle Card -->
+            <!-- Auto-Delete on PC Sync Toggle Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAutoDelete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
-                app:cardBackgroundColor="#151D2A"
-                app:cardCornerRadius="14dp"
+                app:cardBackgroundColor="#141722"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#232F42"
+                app:strokeColor="#222632"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -489,8 +381,8 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp">
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -510,7 +402,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Delete screenshot from phone once stored on laptop"
+                            android:text="Free phone storage once screenshot is stored on laptop"
                             android:textSize="11sp"
                             android:textColor="#94A3B8" />
                     </LinearLayout>
@@ -539,18 +431,286 @@
             </ScrollView>
         </LinearLayout>
 
+        <!-- ======================================================== -->
+        <!-- TAB 4: DEDICATED SETTINGS & AUDIO VIEW (ONE UI 6)        -->
+        <!-- ======================================================== -->
+        <ScrollView
+            android:id="@+id/layoutSettings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="28dp"
+                android:paddingBottom="24dp">
+
+                <!-- One UI 6 Viewing Zone Header -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Settings &amp; Audio"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="#F8FAFC" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Preferences and screen recording controls"
+                    android:textSize="12sp"
+                    android:textColor="#94A3B8"
+                    android:layout_marginBottom="18dp" />
+
+                <!-- Group 1: Screen Recording Preferences Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
+                    app:strokeWidth="1dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Recording Preferences"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="#F8FAFC" />
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="12dp"
+                            app:dividerColor="#222632" />
+
+                        <!-- Audio Choice Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchRecordAudio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Record with Microphone Audio"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="true" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Capture voice narration &amp; explanations. Turn off for silent video."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                        <!-- Always Ask Audio Choice Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchAlwaysAskAudio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:text="Ask Audio Choice Every Time"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="false" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Show audio selection popup each time you tap Record."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                        <!-- Hide Floating Bubble Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchHideBubble"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:text="Hide Floating Capsule in Video"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="true" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Keeps the floating controller out of recorded video for clean output."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                        <!-- Shake Phone to Stop Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchShakeToStop"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:text="Shake Phone to Stop Recording"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="true" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Gently shake phone to end recording with haptic vibration."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Group 2: Advanced Network Settings Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
+                    app:strokeWidth="1dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnToggleSettings"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Advanced Network Settings"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#38BDF8"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:padding="0dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp" />
+
+                        <!-- Collapsible Advanced Settings -->
+                        <LinearLayout
+                            android:id="@+id/layoutAdvancedSettings"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginTop="8dp"
+                            android:visibility="gone">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxBackgroundColor="#0A0C10"
+                                app:boxStrokeColor="#38BDF8"
+                                app:hintTextColor="#38BDF8">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etTargetHost"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Manual IP (Optional - Auto-Discovery Active)"
+                                    android:textColor="#F8FAFC"
+                                    android:textSize="13sp"
+                                    android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:text="LinkSync auto-discovers HP Folio 9470M over Wi-Fi, hotspot, and USB loopback."
+                                android:textSize="11sp"
+                                android:textColor="#64748B" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Group 3: Hardware & Device Info Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#141722"
+                    app:strokeColor="#222632"
+                    app:strokeWidth="1dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="System &amp; Hardware Profile"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="#F8FAFC"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Phone: Samsung Galaxy A17 (SM-A175F)"
+                            android:textColor="#94A3B8"
+                            android:textSize="12sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Receiver: HP EliteBook Folio 9470M"
+                            android:textColor="#94A3B8"
+                            android:textSize="12sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="• Protocol: Big-Endian Binary Frame (Port 54884)"
+                            android:textColor="#94A3B8"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </ScrollView>
+
     </FrameLayout>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation Bar (4 Tabs: Dashboard, Clipboard, Gallery, Settings) -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="62dp"
         android:layout_alignParentBottom="true"
-        android:background="#1E293B"
+        android:background="#141722"
         app:itemIconTint="@color/bottom_nav_colors"
         app:itemTextColor="@color/bottom_nav_colors"
-        app:itemRippleColor="#334155"
+        app:itemRippleColor="#222632"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu" />
 
