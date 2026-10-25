@@ -1,0 +1,39 @@
+# Android / Gradle
+mobile/.gradle/
+mobile/.idea/
+mobile/local.properties
+mobile/app/build/
+mobile/build/
+mobile/**/captures/
+*.apk
+*.aab
+*.ap_
+
+# .NET / WPF
+desktop/**/bin/
+desktop/**/obj/
+desktop/dist/
+desktop/publish/
+*.user
+*.suo
+
+# IDE / OS
+.idea/
+.vs/
+.vscode/
+*.iml
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs and local captures
+run_log.txt
+mobile_*.png
+*.log
+
+# Secrets and machine-local config
+.env
+.env.*
+*.keystore
+*.jks
+credentials.json

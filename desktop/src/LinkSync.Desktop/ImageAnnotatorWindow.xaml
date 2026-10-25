@@ -1,0 +1,224 @@
+<Window x:Class="LinkSync.Desktop.ImageAnnotatorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LinkSync Image Annotator (ShareX-Grade)" 
+        Height="780" Width="1100"
+        MinHeight="600" MinWidth="850"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0F19"
+        KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <!-- Modern Tool Toggle Button Style -->
+        <Style x:Key="ToolRadio" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#2563EB"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#3B82F6"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#64748B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Action Button -->
+        <Style x:Key="HeaderButton" TargetType="Button">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="BtnBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#334155"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Color Circle Swatch -->
+        <Style x:Key="ColorSwatch" TargetType="RadioButton">
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Margin" Value="3,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Name="Border" CornerRadius="11" Background="{TemplateBinding Background}" BorderBrush="#000000" BorderThickness="1">
+                            <Ellipse Name="InnerRing" Width="10" Height="10" Fill="White" Visibility="Collapsed"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#FFFFFF"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="2"/>
+                                <Setter TargetName="InnerRing" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Tool Bar 1: Main Tools & Actions -->
+        <Border Grid.Row="0" Background="#111827" BorderBrush="#1F2937" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Tool Selector Group -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <RadioButton Name="ToolArrow" Content="🏹 Arrow" Style="{StaticResource ToolRadio}" IsChecked="True" Checked="Tool_Checked"/>
+                    <RadioButton Name="ToolStep" Content="① Step" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                    <RadioButton Name="ToolRect" Content="🔲 Box" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                    <RadioButton Name="ToolSpotlight" Content="🔦 Spotlight" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                    <RadioButton Name="ToolPixelate" Content="⬛ Pixelate" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                    <RadioButton Name="ToolBlur" Content="🌫️ Blur" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                    <RadioButton Name="ToolHighlight" Content="🖍️ Highlight" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                    <RadioButton Name="ToolText" Content="🔤 Text" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                </StackPanel>
+
+                <!-- Action Buttons Right -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Name="BtnUndo" Content="↩️ Undo" Style="{StaticResource HeaderButton}" Click="BtnUndo_Click"/>
+                    <Button Name="BtnRedo" Content="↪️ Redo" Style="{StaticResource HeaderButton}" Click="BtnRedo_Click"/>
+                    <Button Name="BtnClear" Content="🗑️ Clear" Style="{StaticResource HeaderButton}" Click="BtnClear_Click"/>
+                    <Border Width="1" Background="#374151" Margin="8,4"/>
+                    <Button Name="BtnCopy" Content="📋 Copy (Ctrl+C)" Style="{StaticResource HeaderButton}" Background="#059669" Foreground="#ECFDF5" FontWeight="Bold" BorderThickness="0" Click="BtnCopy_Click"/>
+                    <Button Name="BtnSave" Content="💾 Save (Ctrl+S)" Style="{StaticResource HeaderButton}" Background="#2563EB" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnSave_Click"/>
+                    <Button Name="BtnSaveAs" Content="💾 Save As..." Style="{StaticResource HeaderButton}" Click="BtnSaveAs_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Sub Toolbar: Colors, Thickness, Mockup Frame -->
+        <Border Grid.Row="1" Background="#161F30" BorderBrush="#1F2937" BorderThickness="0,0,0,1" Padding="12,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Color Palette -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="Color:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="11" Margin="0,0,8,0"/>
+                    <RadioButton Name="ColorRed" Style="{StaticResource ColorSwatch}" Background="#EF4444" IsChecked="True" Checked="Color_Checked"/>
+                    <RadioButton Name="ColorBlue" Style="{StaticResource ColorSwatch}" Background="#3B82F6" Checked="Color_Checked"/>
+                    <RadioButton Name="ColorGreen" Style="{StaticResource ColorSwatch}" Background="#10B981" Checked="Color_Checked"/>
+                    <RadioButton Name="ColorAmber" Style="{StaticResource ColorSwatch}" Background="#F59E0B" Checked="Color_Checked"/>
+                    <RadioButton Name="ColorPurple" Style="{StaticResource ColorSwatch}" Background="#8B5CF6" Checked="Color_Checked"/>
+                    <RadioButton Name="ColorWhite" Style="{StaticResource ColorSwatch}" Background="#FFFFFF" Checked="Color_Checked"/>
+                </StackPanel>
+
+                <!-- Thickness Selector -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="Size:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="11" Margin="0,0,8,0"/>
+                    <RadioButton Name="SizeThin" Content="2px" Style="{StaticResource ToolRadio}" Padding="6,3" FontSize="11" Checked="Size_Checked"/>
+                    <RadioButton Name="SizeMed" Content="4px" Style="{StaticResource ToolRadio}" Padding="6,3" FontSize="11" IsChecked="True" Checked="Size_Checked"/>
+                    <RadioButton Name="SizeThick" Content="8px" Style="{StaticResource ToolRadio}" Padding="6,3" FontSize="11" Checked="Size_Checked"/>
+                </StackPanel>
+
+                <!-- Bezel Mockup Toggle -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox Name="ChkBezelMockup" Content="📱 Samsung Galaxy Bezel Mockup" Foreground="#38BDF8" FontWeight="SemiBold" VerticalAlignment="Center" Cursor="Hand" Click="ChkBezelMockup_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Canvas Workspace Area -->
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#0B0F19">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30">
+                <!-- Drop shadow card border -->
+                <Border Name="CardContainer" Background="#1E293B" CornerRadius="8" BorderBrush="#334155" BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="25" ShadowDepth="4" Opacity="0.5" Color="#000000"/>
+                    </Border.Effect>
+
+                    <Grid>
+                        <!-- Phone Bezel Mockup Frame (Toggled by CheckBox) -->
+                        <Border Name="BezelBorder" Background="#18181B" CornerRadius="42" Padding="14,36,14,24" BorderBrush="#3F3F46" BorderThickness="3" Visibility="Collapsed">
+                            <Grid>
+                                <!-- Camera Punch Hole -->
+                                <Ellipse Width="14" Height="14" Fill="#09090B" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-24,0,0"/>
+                                <!-- Screen Content Slot -->
+                                <Border CornerRadius="28" ClipToBounds="True">
+                                    <ContentControl Name="BezelScreenSlot"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Normal Non-Bezel Host Grid -->
+                        <Grid Name="CanvasHost">
+                            <!-- Background Screenshot Image -->
+                            <Image Name="ImgBase" Stretch="None"/>
+
+                            <!-- Interactive Annotation Overlay Canvas -->
+                            <Canvas Name="AnnotCanvas" Background="Transparent" Cursor="Cross"
+                                    MouseDown="AnnotCanvas_MouseDown"
+                                    MouseMove="AnnotCanvas_MouseMove"
+                                    MouseUp="AnnotCanvas_MouseUp"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Bottom Status Bar -->
+        <Border Grid.Row="3" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="12,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Name="TxtStatus" Text="Ready • Select a tool to annotate. Step badges auto-increment." Foreground="#94A3B8" FontSize="11"/>
+                <TextBlock Name="TxtDimensions" Grid.Column="1" Text="1080 x 2400 px" Foreground="#64748B" FontSize="11"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

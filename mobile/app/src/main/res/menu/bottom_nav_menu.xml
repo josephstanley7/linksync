@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_connect"
+        android:icon="@drawable/ic_nav_connect"
+        android:title="Connect" />
+    <item
+        android:id="@+id/nav_clipboard"
+        android:icon="@drawable/ic_nav_clipboard"
+        android:title="Clipboard" />
+    <item
+        android:id="@+id/nav_screenshots"
+        android:icon="@drawable/ic_nav_screenshots"
+        android:title="Screenshots" />
+</menu>

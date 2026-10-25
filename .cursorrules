@@ -1,0 +1,14 @@
+# LinkSync AI Assistant Rules (.cursorrules)
+
+# MANDATORY INSTRUCTIONS:
+# 1. READ BEFORE CODING:
+#    - Read AGENTS.md, PROGRESS.md, and ARCHITECTURE.md before generating or modifying any code.
+# 2. UPDATE BEFORE FINISHING:
+#    - Always update PROGRESS.md with completed items ([x]) and next actions when a task is finished.
+#    - Always update ARCHITECTURE.md and USER_GUIDE.md if features or protocols changed.
+# 3. STRICT HARDWARE CONSTRAINTS:
+#    - Target Laptop: HP EliteBook Folio 9470M (Intel HD 4000 GPU, dual-core Ivy Bridge).
+#    - Target Phone: Samsung Galaxy A17 (One UI Core, Android 13-15).
+#    - NO Electron, NO Chromium runtimes on desktop (must be native C# .NET 9 Win32/WPF, < 40MB RAM).
+#    - H.264 video encoding/decoding ONLY (QuickSync compatible).
+#    - Gradle builds MUST use JDK 17 LTS (C:\Users\thenp\AppData\Local\Programs\jdk-17\jdk-17.0.20.1+1).

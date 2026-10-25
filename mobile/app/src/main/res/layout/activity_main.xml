@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="#0F172A">
+
+    <!-- Container Frame for the 3 Tab Views -->
+    <FrameLayout
+        android:id="@+id/contentFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNavigation">
+
+        <!-- TAB 1: CONNECTION (CENTERED HERO VIEW - DEFAULT) -->
+        <ScrollView
+            android:id="@+id/layoutConnect"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="24dp">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LinkSync"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    android:textColor="#38BDF8" />
+
+                <TextView
+                    android:id="@+id/tvSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Folio 9470M &lt;—&gt; Galaxy A17 Local Bridge"
+                    android:textSize="13sp"
+                    android:textColor="#94A3B8" />
+
+                <!-- Centered Modern Connection Status Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardConnection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    app:cardBackgroundColor="#1E293B"
+                    app:strokeColor="#334155"
+                    app:strokeWidth="1dp"
+                    app:cardCornerRadius="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="22dp">
+
+                        <!-- Status Dot & Connected Name -->
+                        <TextView
+                            android:id="@+id/tvConnectionStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🟠 Searching for Laptop..."
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="#F59E0B" />
+
+                        <!-- Status Detail Subtitle -->
+                        <TextView
+                            android:id="@+id/tvDeviceDetails"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Waiting for LinkSync on laptop to open..."
+                            android:textSize="13sp"
+                            android:textColor="#94A3B8" />
+
+                        <!-- Active Features Pill -->
+                        <TextView
+                            android:id="@+id/tvFeaturePill"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:background="#0F172A"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="6dp"
+                            android:text="⚡ Auto Clipboard &amp; Screenshot Sync Active"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#38BDF8"
+                            android:visibility="gone" />
+
+                        <!-- Discovered Computers Selection Picker -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSelectPc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="💻 Available Computers"
+                            android:textSize="12sp"
+                            android:textColor="#38BDF8"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:padding="0dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:visibility="gone" />
+
+                        <!-- Action Button: Connect / Disconnect -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnConnect"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="18dp"
+                            android:text="⚡ Connect to Laptop"
+                            android:backgroundTint="#2563EB"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="12dp" />
+
+                        <!-- Advanced Settings Collapsible Toggle -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnToggleSettings"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:layout_gravity="center_horizontal"
+                            android:text="⚙️ Advanced Network Settings"
+                            android:textSize="11sp"
+                            android:textColor="#64748B"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:padding="0dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp" />
+
+                        <!-- Collapsible Advanced Settings (Hidden by default) -->
+                        <LinearLayout
+                            android:id="@+id/layoutAdvancedSettings"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginTop="6dp"
+                            android:visibility="gone">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                app:boxBackgroundColor="#0F172A"
+                                app:boxStrokeColor="#38BDF8"
+                                app:hintTextColor="#38BDF8">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etTargetHost"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Manual IP (Optional - Auto-Discovery is Active)"
+                                    android:textColor="#F8FAFC"
+                                    android:textSize="13sp"
+                                    android:singleLine="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:text="💡 LinkSync auto-connects over local Wi-Fi, Hotspot, and USB cable."
+                                android:textSize="11sp"
+                                android:textColor="#64748B" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- TAB 2: CLIPBOARD HISTORY VIEW -->
+        <LinearLayout
+            android:id="@+id/layoutClipboard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="gone">
+
+            <!-- Clipboard Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📋 Clipboard History"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="#F1F5F9" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Two-way synchronized clipboard stream"
+                        android:textSize="12sp"
+                        android:textColor="#94A3B8" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClearClipboard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="🗑 Clear"
+                    android:textSize="11sp"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:textColor="#EF4444" />
+            </LinearLayout>
+
+            <!-- Scrollable List of Copied Snippets -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:id="@+id/llClipboardHistory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
+        </LinearLayout>
+
+        <!-- TAB 3: SCREENSHOTS GALLERY VIEW -->
+        <LinearLayout
+            android:id="@+id/layoutScreenshots"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:visibility="gone">
+
+            <!-- Screenshots Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📸 Screenshots"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="#F1F5F9" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Auto-synced with HP Folio 9470M"
+                        android:textSize="11sp"
+                        android:textColor="#94A3B8" />
+                </LinearLayout>
+
+                <!-- Layout Toggle Buttons (Grid vs List) -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:background="@drawable/bg_pill_toggle_container"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="3dp">
+
+                    <TextView
+                        android:id="@+id/btnLayoutGrid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:text="🔲 Grid"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/bg_pill_toggle_selected"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/btnLayoutList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:text="☰ List"
+                        android:textSize="12sp"
+                        android:textColor="#94A3B8"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRefreshMedia"
+                    android:layout_width="38dp"
+                    android:layout_height="34dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:layout_marginStart="6dp"
+                    android:padding="0dp"
+                    android:text="🔄"
+                    android:textSize="12sp"
+                    android:textColor="#38BDF8"
+                    app:backgroundTint="#0B132B"
+                    app:strokeColor="#334155"
+                    app:strokeWidth="1dp"
+                    app:cornerRadius="8dp"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            </LinearLayout>
+
+            <!-- Feature 13: Auto-Delete on PC Sync Toggle Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAutoDelete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="#151D2A"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#232F42"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Auto-Delete on PC Sync"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#F8FAFC" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Delete screenshot from phone once stored on laptop"
+                            android:textSize="11sp"
+                            android:textColor="#94A3B8" />
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swAutoDelete"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:useMaterialThemeColors="true" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Scrollable Container of Screenshots -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:overScrollMode="never">
+
+                <LinearLayout
+                    android:id="@+id/llMediaList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="24dp" />
+            </ScrollView>
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:layout_alignParentBottom="true"
+        android:background="#1E293B"
+        app:itemIconTint="@color/bottom_nav_colors"
+        app:itemTextColor="@color/bottom_nav_colors"
+        app:itemRippleColor="#334155"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
+
+</RelativeLayout>

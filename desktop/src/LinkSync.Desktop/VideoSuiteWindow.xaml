@@ -1,0 +1,242 @@
+<Window x:Class="LinkSync.Desktop.VideoSuiteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LinkSync Video Suite (Lossless Slicer &amp; GIF Exporter)" 
+        Height="720" Width="1020"
+        MinHeight="550" MinWidth="800"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0F19">
+
+    <Window.Resources>
+        <!-- Modern Card Panel -->
+        <Style x:Key="CardPanel" TargetType="Border">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Primary Action Button -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="Border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Outline Button -->
+        <Style x:Key="OutlineButton" TargetType="Button">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#475569"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#334155"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header Bar -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="LinkSync Video Suite" FontSize="22" FontWeight="Bold" Foreground="#38BDF8"/>
+                <TextBlock Name="TxtVideoFile" Text="No video loaded" FontSize="12" Foreground="#94A3B8"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Name="BtnOpenVideo" Content="📁 Open Another Video" Style="{StaticResource OutlineButton}" Click="BtnOpenVideo_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Body: Left (Video Player & Timeline) / Right (Tools Panel) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Video Player & Timeline -->
+            <Border Grid.Column="0" Style="{StaticResource CardPanel}" Margin="0,0,10,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Video Preview Frame -->
+                    <Border Grid.Row="0" Background="#000000" CornerRadius="6" ClipToBounds="True">
+                        <MediaElement Name="Player" LoadedBehavior="Manual" UnloadedBehavior="Stop"
+                                      MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"
+                                      Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <!-- Timeline Scrubbing Slider -->
+                    <Grid Grid.Row="1" Margin="0,12,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Slider Name="SliderTimeline" Minimum="0" Value="0"
+                                PreviewMouseDown="SliderTimeline_PreviewMouseDown"
+                                PreviewMouseUp="SliderTimeline_PreviewMouseUp"
+                                ValueChanged="SliderTimeline_ValueChanged"
+                                Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Playback Controls Bar -->
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Transport Buttons -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <Button Name="BtnPlayPause" Content="▶ Play" Style="{StaticResource OutlineButton}" Width="70" Click="BtnPlayPause_Click"/>
+                            <Button Name="BtnStop" Content="⏹ Stop" Style="{StaticResource OutlineButton}" Width="65" Margin="4,0,0,0" Click="BtnStop_Click"/>
+                            <Border Width="1" Background="#334155" Margin="8,2"/>
+                            <Button Name="BtnSetStart" Content="[ Set Start" Style="{StaticResource OutlineButton}" Background="#065F46" Foreground="#6EE7B7" Click="BtnSetStart_Click"/>
+                            <Button Name="BtnSetEnd" Content="Set End ]" Style="{StaticResource OutlineButton}" Background="#065F46" Foreground="#6EE7B7" Margin="4,0,0,0" Click="BtnSetEnd_Click"/>
+                        </StackPanel>
+
+                        <!-- Time Readout -->
+                        <TextBlock Name="TxtTimeReadout" Grid.Column="2" Text="00:00.0 / 00:00.0" FontSize="13" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Right: Tools Panel (Lossless Slicer & High-Framerate GIF) -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="10,0,0,0">
+
+                    <!-- Trimming Points Card -->
+                    <Border Style="{StaticResource CardPanel}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="✂️ Trim Range (Lossless)" FontSize="15" FontWeight="SemiBold" Foreground="#F8FAFC" Margin="0,0,0,8"/>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Start Time:" FontSize="11" Foreground="#94A3B8"/>
+                                    <TextBlock Name="TxtStartTime" Text="00:00:00.000" FontSize="14" FontWeight="Bold" Foreground="#10B981"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="End Time:" FontSize="11" Foreground="#94A3B8"/>
+                                    <TextBlock Name="TxtEndTime" Text="00:00:00.000" FontSize="14" FontWeight="Bold" Foreground="#EF4444"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Name="TxtSelectedDuration" Text="Selected Duration: 0.00s" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,10"/>
+
+                            <Button Name="BtnLosslessCut" Content="⚡ Lossless Cut MP4 (&lt; 300ms, 0% CPU)" Style="{StaticResource ActionButton}" Background="#0284C7" Click="BtnLosslessCut_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- High-Framerate Animated GIF Suite Card -->
+                    <Border Style="{StaticResource CardPanel}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="🎨 Two-Pass Animated GIF Suite" FontSize="15" FontWeight="SemiBold" Foreground="#F8FAFC" Margin="0,0,0,4"/>
+                            <TextBlock Text="Lanczos-scaled palette generation for GitHub &amp; Slack" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,12"/>
+
+                            <!-- Resolution Choice -->
+                            <TextBlock Text="GIF Resolution:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                            <ComboBox Name="CmbResolution" Background="#0F172A" Foreground="#F8FAFC" Padding="6,4" Margin="0,0,0,10">
+                                <ComboBoxItem Content="720p Width (Recommended for GitHub/Slack)" IsSelected="True"/>
+                                <ComboBoxItem Content="480p Width (Super Lightweight)"/>
+                                <ComboBoxItem Content="1080p (Full Resolution)"/>
+                            </ComboBox>
+
+                            <!-- Frame Rate Choice -->
+                            <TextBlock Text="Frame Rate:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                            <ComboBox Name="CmbFps" Background="#0F172A" Foreground="#F8FAFC" Padding="6,4" Margin="0,0,0,10">
+                                <ComboBoxItem Content="15 FPS (Recommended - Smooth &amp; Compact)" IsSelected="True"/>
+                                <ComboBoxItem Content="10 FPS (Smallest File Size)"/>
+                                <ComboBoxItem Content="24 FPS (Ultra Smooth)"/>
+                            </ComboBox>
+
+                            <!-- Speed Multiplier -->
+                            <TextBlock Text="Playback Speed:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                            <ComboBox Name="CmbSpeed" Background="#0F172A" Foreground="#F8FAFC" Padding="6,4" Margin="0,0,0,14">
+                                <ComboBoxItem Content="1.0x (Normal Speed)" IsSelected="True"/>
+                                <ComboBoxItem Content="1.25x (Brisk)"/>
+                                <ComboBoxItem Content="1.5x (Fast)"/>
+                                <ComboBoxItem Content="2.0x (Double Speed)"/>
+                                <ComboBoxItem Content="0.5x (Slow-Mo)"/>
+                            </ComboBox>
+
+                            <Button Name="BtnExportGif" Content="🖼️ Export Animated GIF" Style="{StaticResource ActionButton}" Background="#8B5CF6" Click="BtnExportGif_Click"/>
+                            <Button Name="BtnCopyGifClipboard" Content="📋 Copy Last GIF to Clipboard" Style="{StaticResource OutlineButton}" Margin="0,8,0,0" Click="BtnCopyGifClipboard_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Sped-Up MP4 Export Card -->
+                    <Border Style="{StaticResource CardPanel}">
+                        <StackPanel>
+                            <TextBlock Text="⏩ Video Speed Export" FontSize="15" FontWeight="SemiBold" Foreground="#F8FAFC" Margin="0,0,0,8"/>
+                            <Button Name="BtnExportSpeedMp4" Content="Export Sped-Up / Slowed MP4" Style="{StaticResource OutlineButton}" Click="BtnExportSpeedMp4_Click"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Bottom Status Bar -->
+        <Border Grid.Row="2" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="12,8" Margin="0,12,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Name="TxtStatus" Text="Ready" Foreground="#94A3B8" FontSize="12"/>
+                <ProgressBar Name="ProgressWorking" Grid.Column="1" Width="120" Height="14" IsIndeterminate="True" Visibility="Collapsed"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

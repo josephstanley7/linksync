@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">LinkSync</string>
+    <string name="tile_record_label">LinkSync Record</string>
+    <string name="status_connected">Connected to PC</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="notification_channel_name">LinkSync Background Service</string>
+    <string name="notification_channel_desc">Maintains active bridge to your laptop</string>
+</resources>
