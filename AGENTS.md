@@ -120,3 +120,36 @@ linksync/
     ├── gradle.properties   <- Configured to JDK 17 LTS
     └── gradlew.bat         <- Gradle 8.11.1 Wrapper
 ```
+
+---
+
+## 6. Cursor Cloud specific instructions
+
+Cloud agents run on Linux. Build and exercise the portable pieces here. The WPF receiver (`desktop/src/LinkSync.Desktop`, `net9.0-windows`) stays a Windows build for the EliteBook.
+
+Installed toolchain (login shells pick this up from `/etc/profile.d/linksync-cloud.sh`):
+
+| Tool | Linux location |
+| :--- | :--- |
+| JDK 17 | `/usr/lib/jvm/java-17-openjdk-amd64` (also `/usr/local/bin/java`) |
+| .NET 9 SDK | `/usr/local/share/dotnet` (`dotnet` on `/usr/local/bin/dotnet`) |
+| Android SDK | `/opt/android-sdk` (platform 35, build-tools 35.0.0, platform-tools) |
+| ADB | `/usr/local/bin/adb` |
+
+`mobile/gradle.properties` keeps `org.gradle.java.home` on the Windows JDK 17 path used by the EliteBook. Linux Gradle reads `~/.gradle/gradle.properties`, which sets `org.gradle.java.home` to the JDK above. There is no POSIX `gradlew` in the repo (only `gradlew.bat`). From `mobile/`, build the debug APK with the wrapper jar:
+
+```bash
+java -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain \
+  -Dorg.gradle.java.home="${JAVA_HOME:-/usr/lib/jvm/java-17-openjdk-amd64}" \
+  :app:assembleDebug --no-daemon
+```
+
+`mobile/local.properties` is gitignored. It should contain `sdk.dir=/opt/android-sdk`. The debug APK is `mobile/app/build/outputs/apk/debug/app-debug.apk`.
+
+Build the portable protocol library with:
+
+```bash
+dotnet build desktop/src/LinkSync.Core/LinkSync.Core.csproj
+```
+
+Nothing needs to be running on boot. A hello-world is a TCP loopback on `127.0.0.1:54884`: `LinkSyncProtocol.kt` (phone framing) exchanges `OP_HANDSHAKE` (`0x0001`), `OP_CLIPBOARD_TEXT` (`0x0010`), and `OP_FILE_SYNC_ACK` (`0x0022`) with `LinkSync.Core`.
