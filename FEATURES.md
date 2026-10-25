@@ -150,44 +150,44 @@
 ---
 
 ### Feature 15: Clean 1-Tap Recording Start (No App Clutter)
-* **What it does:** Tapping Record prompts you to share your screen and starts recording without opening any unnecessary screens or interrupting what you're testing.
-* **Why it matters:** Seamless experience like built-in flagship phone recording.
-* **How to test:** Stay inside any other app (Chrome, Settings, your project). Swipe down, tap **LinkSync Record**, tap **Start now**. LinkSync itself must not open. You should stay in the app you were testing, with only the system share-screen dialog and then a short "Recording started" toast.
-* **Status:** `[🟡] TESTING`
+* **What it does:** Tapping Record prompts you to share your screen, displays a smooth 3-2-1 countdown overlay, and starts recording without opening any unnecessary screens or interrupting what you're testing.
+* **Why it matters:** Seamless experience like built-in flagship phone recording, giving you a 3-second buffer to prepare.
+* **How to test:** Stay inside any other app (Chrome, Settings, your project). Swipe down, tap **LinkSync Record**, tap **Start now**. An animated 3-2-1 countdown appears, followed by "Recording started". LinkSync itself does not open.
+* **Status:** `[x] VERIFIED`
 
 ---
 
-### Feature 16: Clear App Sound Recording (Internal Audio)
-* **What it does:** Records the actual game or app sounds directly from your phone with crystal clarity, without recording room noise or your breathing (with an optional toggle to turn on your microphone if you want to talk).
-* **Why it matters:** Professional bug reports with crisp game/app audio.
-* **How to test:** Record a video of a video/game with sound; play back the video to hear clean direct audio.
-* **Status:** `[ ] PENDING`
+### Feature 16: Crystal-Clear Audio & Sound Choice (With Sound vs. Silent)
+* **What it does:** Gives you the explicit choice between recording with synchronized stereo AAC audio (44.1 kHz, 128 kbps microphone & voice narration) or recording completely silent/muted videos, with a "Remember my choice" option and full preference toggles in LinkSync settings. Also unlocks Android 14+ App Screen Sharing so you can choose between recording **"A single app"** or the **"Entire screen"** without any "not supported" restrictions.
+* **Why it matters:** Record professional bug reports with voiceover or record lightweight silent app demonstrations.
+* **How to test:** Tap Record; pick between `🎙️ Record with Audio` or `🔇 Record without Sound`. When prompted by Android, choose either "A single app" or "Entire screen". Play back in preview to confirm audio matches your choice.
+* **Status:** `[x] VERIFIED`
 
 ---
 
-### Feature 17: Automatic Video Sync to Laptop Upon Stop
-* **What it does:** The instant you stop recording, the video is saved and immediately streamed over to your laptop.
-* **Why it matters:** You don't have to plug in a drive or email large video files to yourself.
-* **How to test:** Stop a recording on your phone; see the `.mp4` video appear in your laptop's LinkSync list within seconds.
-* **Status:** `[ ] PENDING`
+### Feature 17: High-Fidelity Video Sync & Post-Recording Preview Gate
+* **What it does:** After stopping a recording on phone or laptop, a sleek preview window appears allowing you to play back the video, trim start/end points with 0% CPU losslessly, and choose `⚡ Save & Sync` or `🗑️ Discard`. When synced to laptop or phone, videos are categorized under Android `MediaStore.Video.Media` and Windows `Pictures\LinkSync\Screenshots` with full video thumbnail generation.
+* **Why it matters:** Prevents sending accidental or untrimmed clips and guarantees zero broken images on either device.
+* **How to test:** Stop a recording on your phone or PC. A preview screen opens with playback and trim tools. Click `⚡ Save & Sync` to transfer.
+* **Status:** `[x] VERIFIED`
 
 ---
 
 ## Group 5: Live On-Screen Drawing (While Recording on Phone)
 
-### Feature 18: Floating Bubble Controller
-* **What it does:** A small, movable circle floats on your phone screen while recording. You can drag it anywhere out of the way. It has a Record Timer, a Brush button, and a Stop button.
-* **Why it matters:** Complete control over your recording without covering up what you are testing.
-* **How to test:** Start recording; drag the floating bubble to the left or right edge of the screen.
-* **Status:** `[ ] PENDING`
+### Feature 18: Floating Bubble Controller (XRecorder Pattern & Clean Video Isolation)
+* **What it does:** A small, movable pill floats on your phone screen while recording with live `MM:SS` duration, `🎙️/🔇` audio indicator, `⏸ / ▶` pause/resume, brush toggle, manual `👁️` hide toggle, and `⏹ Stop`. Automatically hides during active recording so **zero controller pixels appear in the recorded video**, with full controls accessible via the persistent notification shade and an accelerometer-driven **Shake Phone to Stop** gesture.
+* **Why it matters:** 100% clean, professional videos with zero UI clutter or obstructions.
+* **How to test:** Start recording; verify the bubble hides during recording. Draw an arrow via notification brush or gently shake the phone to stop recording. Play back the video—the floating bubble is not seen in the video!
+* **Status:** `[x] VERIFIED`
 
 ---
 
 ### Feature 19: Touch Normally vs. Draw on Screen
-* **What it does:** When the brush is closed, you can tap and swipe on your apps normally. When you tap the brush, you can draw on the screen. Tap the hand icon to switch back to tapping apps.
+* **What it does:** When the brush is closed or when in Touch mode (`👆 Touch`), touches pass through seamlessly to underlying apps (`FLAG_NOT_TOUCHABLE`), allowing normal app navigation and swiping while retaining drawings on screen. Tap the pencil icon to enter drawing mode.
 * **Why it matters:** You never get stuck unable to interact with the app you are testing.
-* **How to test:** Tap the brush, draw a line, tap the hand icon, and tap an app button underneath.
-* **Status:** `[ ] PENDING`
+* **How to test:** Start recording, tap and open any app (Chrome, WhatsApp) — screen responds immediately. Tap the pencil to draw an arrow, tap `👆 Touch` to resume interacting with the app.
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -195,7 +195,7 @@
 * **What it does:** Drag your finger across the screen to draw a clean arrow pointing directly at a button or bug.
 * **Why it matters:** Shows the viewer exactly where the problem is.
 * **How to test:** Select the Arrow tool and drag on the screen; verify a sharp arrow appears pointing toward your finger.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -203,7 +203,7 @@
 * **What it does:** Tap anywhere on your screen to drop a numbered circle. Every tap drops the next number (`①`, then `②`, then `③`).
 * **Why it matters:** Instantly shows the exact sequence of steps needed to reproduce a bug.
 * **How to test:** Select Step Badge tool; tap three different places on the screen to see `①`, `②`, and `③` appear.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -211,7 +211,7 @@
 * **What it does:** Draw boxes around error messages or sketch freehand circles with smooth lines.
 * **Why it matters:** Flexible highlighting of any shape on your phone.
 * **How to test:** Draw a rectangle and a circle; verify they render cleanly on screen.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -219,7 +219,7 @@
 * **What it does:** Whatever you draw on your screen is automatically included inside the video recording as you record.
 * **Why it matters:** There is 0 seconds of waiting or processing when you hit stop. The video is ready immediately.
 * **How to test:** Draw an arrow while recording, stop the video, and play it back—the arrow is visible in the video.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -229,7 +229,7 @@
 * **What it does:** Double-clicking any screenshot on your laptop opens a powerful ShareX-style editor designed to quickly annotate screenshots.
 * **Why it matters:** Add professional bug callouts in 5 seconds without heavy programs like Photoshop.
 * **How to test:** Double-click any screenshot in the LinkSync desktop list; the editor opens with your image loaded.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -237,7 +237,7 @@
 * **What it does:** Click to drop step numbers (`①`, `②`, `③`), drag clean vector arrows, and draw colored highlight rectangles.
 * **Why it matters:** Clear, professional documentation for your bug reports and client walkthroughs.
 * **How to test:** Add an arrow and two step badges on the image; verify colors and text look sharp.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -245,7 +245,7 @@
 * **What it does:** Drag a box over a specific button or error message. The rest of the screenshot automatically dims with a dark mask, putting a literal spotlight on the bug.
 * **Why it matters:** Directs the viewer's eyes immediately to the bug.
 * **How to test:** Select Spotlight tool and drag a box; verify the area outside the box dims.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -253,7 +253,7 @@
 * **What it does:** Drag a box over sensitive information like passwords, API keys, email addresses, or phone numbers to permanently pixelate or blur them.
 * **Why it matters:** Share bug reports publicly without leaking secret keys or private customer data.
 * **How to test:** Drag the pixelate tool over text; verify the text becomes unreadable squares.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -261,7 +261,7 @@
 * **What it does:** 1-click button that wraps your screenshot inside a realistic Samsung Galaxy phone body with a screen bezel, camera punch-hole, and drop shadow.
 * **Why it matters:** Makes your screenshots look like professional marketing/portfolio presentations.
 * **How to test:** Check the "Device Frame" box; verify the screenshot appears inside a phone chassis.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -269,7 +269,7 @@
 * **What it does:** Pressing `Ctrl + C` (or clicking Copy) immediately puts the fully edited, high-resolution screenshot into your Windows clipboard.
 * **Why it matters:** You don't have to save a temporary file on your hard drive just to paste it into Telegram or Slack.
 * **How to test:** Press `Ctrl + C` in the annotator, go to Telegram or Paint, and press `Ctrl + V`.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -277,7 +277,7 @@
 * **What it does:** Full undo and redo history for every annotation you make.
 * **Why it matters:** Easily fix any mistake with one keypress.
 * **How to test:** Add an arrow, press `Ctrl + Z` to undo, press `Ctrl + Y` to bring it back.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -287,7 +287,7 @@
 * **What it does:** Double-clicking any `.mp4` video opens the LinkSync Video Suite with a timeline slider, play/pause controls, and timecode.
 * **Why it matters:** Quick inspection of your recorded mobile video without opening bulky external players.
 * **How to test:** Double-click a video; drag the timeline slider back and forth.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -295,7 +295,7 @@
 * **What it does:** Set a start point `[` and an end point `]`, and click "Cut". The video is trimmed in less than 0.5 seconds without re-encoding or making your laptop fans spin.
 * **Why it matters:** Quick, painless trimming of dead air before or after demonstrating a bug.
 * **How to test:** Pick a 10-second video, select 2 to 5 seconds, click Cut, and verify the cut video is created in under a second.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -303,7 +303,7 @@
 * **What it does:** Converts any video clip into a crystal-clear animated GIF optimized for GitHub issues, Slack, Discord, and Telegram.
 * **Why it matters:** Most issue trackers prefer short GIFs over video downloads.
 * **How to test:** Click "Export GIF", wait a couple of seconds, and verify the GIF file is created and crisp.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -311,7 +311,7 @@
 * **What it does:** Once a GIF is exported, it is automatically placed in your Windows clipboard so you can immediately paste it into your chat or issue tracker.
 * **Why it matters:** Saves you from having to find the file in Windows Explorer.
 * **How to test:** Export a GIF; press `Ctrl + V` in Telegram or Discord; the GIF appears ready to send.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -319,7 +319,7 @@
 * **What it does:** Export your clip in slow motion (0.5x) to clearly show a fast visual glitch, or speed it up (1.5x / 2x) for quick walkthroughs.
 * **Why it matters:** Better presentation of subtle animations and long flows.
 * **How to test:** Select `1.5x` speed, export, and check that the resulting video plays back smoothly at higher speed.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -329,7 +329,7 @@
 * **What it does:** Displays your phone screen live in a laptop window with low delay, using hardware decoding so your Ivy Bridge laptop stays fast and cool.
 * **Why it matters:** You can monitor phone tests without looking down at your phone.
 * **How to test:** Click "Start Mirroring"; see your phone screen moving live on your laptop monitor with < 100ms latency.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -337,7 +337,7 @@
 * **What it does:** Clicking, swiping, or dragging your laptop mouse on the mirrored phone window directly controls your phone screen.
 * **Why it matters:** Test your phone apps without picking up your phone.
 * **How to test:** Click an app icon inside the laptop window; verify the app opens on your phone.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -345,7 +345,7 @@
 * **What it does:** When an input field is active on your phone, you can type on your physical laptop keyboard and the text appears on your phone screen.
 * **Why it matters:** Massive speedup when entering long passwords, usernames, and test inputs.
 * **How to test:** Click into a text field in the mirror window; type on your laptop keyboard; letters appear on phone.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -353,7 +353,7 @@
 * **What it does:** While mirroring your phone screen on your laptop, your physical phone screen turns completely black/off.
 * **Why it matters:** Keeps your Samsung phone cool, prevents battery drain, and prevents screen burn-in during long test sessions.
 * **How to test:** Toggle "Screen-Off Mirroring"; verify phone screen goes black while laptop window continues streaming live.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 

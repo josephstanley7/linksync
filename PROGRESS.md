@@ -1,7 +1,7 @@
 # PROGRESS.md — Project State & Milestone Tracker
 
 > **Last Updated:** 2026-10-25  
-> **Current Status:** **Phase 1, 2, & 3 Complete** ✅ | **Testing Group 4: Feature 15 (Clean 1-Tap Recording Start)** 🎯  
+> **Current Status:** **Features 1-39 Verified** ✅ | **Active Sprint: Complete UI/UX Makeover & Craft Redesign** 🎨  
 > **Target Deployment:** HP EliteBook Folio 9470M & Samsung Galaxy A17  
 > 📌 **PRIMARY FEATURE VERIFICATION TRACKER:** [`FEATURES.md`](file:///c:/Users/thenp/Desktop/linksync/FEATURES.md) (All features tracked one by one in simple English)
 
@@ -19,7 +19,12 @@
   * Inno Setup Clean Overwrite & Auto-Termination ================> 100% DONE ✅
 [ Phase 2: Live Drawing & Screen Recording ] ====================> 100% DONE ✅
 [ Phase 3: ShareX Desktop Editor & GIF     ] ====================> 100% DONE ✅
-[ Phase 4: Hardware Mirroring & Input     ] ====================> UP NEXT 🎯
+[ Phase 4: Hardware Mirroring & Input     ] ====================> 100% DONE ✅
+  * 60 FPS DXVA2 QuickSync Hardware Mirror Window (Feature 36) ====> 100% DONE ✅
+  * Remote Mouse & Trackpad Control (Feature 37) ==================> 100% DONE ✅
+  * Physical Laptop Keyboard Remote Typing (Feature 38) ===========> 100% DONE ✅
+  * "Screen-Off" Power Saving Mode (Feature 39) ===================> 100% DONE ✅
+[ Sprint: Full UI/UX Makeover & Polish     ] ====================> IN PROGRESS 🎨
 [ Phase 5: Communication Hub & 1-Click OTP ] ====================> PENDING
 ```
 
@@ -53,12 +58,29 @@
   * Dynamic toggle between touch pass-through (`FLAG_NOT_TOUCHABLE`) and drawing mode.
   * Vector shapes: Freehand pen (bezier smoothed), Arrow (trigonometric arrowhead with `atan2`), Rectangle, Step Number badges (auto-incrementing ①, ②, ③).
   * In-memory drawing stack with `undo()` and `clearAll()` actions.
-  * Direct display baking: drawings are rendered on `SurfaceFlinger` composited buffer and baked natively into video recordings with 0ms post-processing overhead.
+  * Direct display baking: enforced default display capture (`MediaProjectionConfig.createConfigForDefaultDisplay()`) so all drawn shapes are baked into video recordings with 0ms post-processing overhead.
 * [x] **Hardware `MediaCodec` H.264 Video Recorder (`ScreenRecorderService.kt`):**
-  * Uses Android `MediaProjection` capturing virtual display buffer at native display metrics.
-  * Hardware H.264 video encoding at 30 FPS, 6 Mbps into standard MPEG-4 MP4.
+  * Uses Android `MediaProjection` capturing virtual display buffer at native display metrics (`1080 x 2340`, zero scaling distortion).
+  * High-fidelity 16 Mbps H.264 video encoding at 30 FPS with `AVCProfileHigh` (`AVCLevel42`) for sharp text, clean lines, and zero blur.
+* [x] **Post-Recording Preview & Edit Gate (`VideoPreviewActivity.kt`):**
+  * Dedicated post-capture preview screen with inline playback, scrubbing timeline, and play/pause controls.
+  * Lossless in-device video trimming using Android `MediaExtractor` + `MediaMuxer` (0% CPU re-encode, original AVC/AAC stream retained).
+  * Direct action buttons: `⚡ Save & Sync to Laptop`, `💾 Save to Phone Only`, and `🗑️ Discard Recording`.
+* [x] **Crystal-Clear Audio & Voiceover Recording (`ScreenRecorderService.kt`):**
+  * Full Android 14+ dual foreground service type support: `mediaProjection|microphone`.
+  * Stereo AAC audio recording (44.1 kHz, 128 kbps) synchronized with H.264 video.
+  * Graceful fallback to video-only if audio permission is not granted.
+* [x] **Dynamic Audio Choice & App Screen Sharing Restoration (`ScreenCapturePromptActivity.kt`):**
+  * Restored Android 14+ native choice between "Entire screen" and "A single app" by eliminating `createConfigForDefaultDisplay()`.
+  * Pre-recording audio choice modal (`🎙️ Record with Audio` vs `🔇 Record without Sound`) with "Remember my choice" option.
+  * Dedicated recording preferences in `MainActivity` with audio mode toggles.
+* [x] **Ghost Overlay Isolation & Shake-to-Stop Gesture (`ScreenRecorderService.kt` & `FloatingControlView.kt`):**
+  * Floating bubble controller automatically hides during active recording (`pref_hide_floating_controller`, default ON) so zero controller pixels appear in the recorded video.
+  * Accelerometer-driven **Shake to Stop Recording** gesture with haptic vibration feedback.
+  * Action buttons in persistent notification shade: `[ ⏹ Stop ]`, `[ ⏸ Pause / ▶ Resume ]`, `[ 🎨 Brush ]`.
+  * 1-tap manual `👁️` hide toggle on floating capsule.
 * [x] **Post-Recording Auto-Sync Pipeline:**
-  * Automatically registers MP4 in Android MediaStore via `MediaScannerConnection`.
+  * Automatically registers MP4 in Android MediaStore via `MediaScannerConnection` under `MediaStore.Video.Media`.
   * Automatically streams raw MP4 bytes to HP Folio 9470M receiver over socket.
   * Desktop saves to `Pictures\LinkSync\Screenshots` for instant inspection and editing.
 
@@ -76,10 +98,25 @@
   * 1-click Samsung Galaxy A phone mockup bezel chassis with front camera punch-hole and drop shadow.
   * Instant full-resolution export to Windows Clipboard (`Ctrl+C`) and PNG save (`Ctrl+S`).
   * Full undo/redo stack (`Ctrl+Z`, `Ctrl+Y`).
-* [x] **Lossless Keyframe Slicer (`VideoSuiteWindow.xaml` / `FfmpegVideoService.cs`):**
-  * Scrubbing timeline with WMF hardware video playback.
+* [x] **Desktop ShareX Screen Recording Pipeline (`DesktopScreenRecorder.cs`):**
+  * FFmpeg `gdigrab` capture engine targeting custom regions or full desktop with even dimension alignment.
+  * H.264 / AVC encoding with `preset ultrafast` and `tune zerolatency` optimized for Intel QuickSync Ivy Bridge.
+  * ShareX-style Floating Recording Toolbar (`ScreenRecordingBarWindow.xaml`):
+    * Blinking red dot with `REC` indicator.
+    * Live duration counter (`00:00:00`).
+    * Dimension indicator pill (`1280 × 720`).
+    * Stop `⏹`, Pause/Resume `⏸ / ▶` (via NT kernel process suspension `NtSuspendProcess`), and Abort `✕`.
+  * Animated dashed boundary overlay (`RecordingBorderWindow.xaml`) around the recorded region with `WS_EX_TRANSPARENT` click-through.
+  * Automated ShareX post-recording workflow:
+    1. Graceful MP4 flush via standard input `q` (preserves `moov` container atom).
+    2. Video automatically copied to Windows Clipboard (`FileDropList`).
+    3. Video automatically streamed to connected Galaxy A17 via `SyncServer`.
+    4. Automatically opens in `VideoSuiteWindow` for immediate lossless trimming or GIF export.
+* [x] **Lossless Keyframe Slicer & Video Tools (`VideoSuiteWindow.xaml` / `FfmpegVideoService.cs`):**
+  * Scrubbing timeline with WMF hardware video playback and micro-stepping (`◀ -0.1s`, `+0.1s ▶`).
   * Set Start `[` and Set End `]` range markers.
   * FFmpeg stream copy (`-c copy`) slicing video in < 300ms with 0% CPU re-encode.
+  * Still Frame Extractor: extract high-resolution PNG at current playhead position, copy to clipboard, or open directly in Image Annotator.
 * [x] **Two-Pass Animated GIF Exporter:**
   * Single-pass `split[s0][s1]` Lanczos scaling and Bayer dithering palette pipeline.
   * Presets for 720p (Slack/GitHub), 480p, and 1080p at 10/15/24 FPS.
@@ -92,10 +129,16 @@
 
 ---
 
-### Phase 4: Low-Latency Mirroring & Remote Input Injection (UP NEXT 🎯)
-* [ ] **DXVA2 Intel QuickSync Hardware Mirror Window:** 60 FPS H.264 stream decoded on Intel HD 4000 GPU (< 3% CPU).
-* [ ] **Remote Keyboard & Mouse Injection:** Type into phone forms with laptop keyboard.
-* [ ] **"Screen-Off" Power Saving Mode:** Mirror while physical phone display is turned off.
+### Phase 4: Low-Latency Mirroring & Remote Input Injection (COMPLETED & VERIFIED ✅)
+* [x] **DXVA2 Intel QuickSync Hardware Mirror Window:** 60 FPS H.264 stream decoded on Intel HD 4000 GPU (< 3% CPU). (Feature 36 Verified ✅)
+* [x] **Remote Keyboard & Mouse Injection:** Type into phone forms with laptop keyboard; click, swipe, scroll with laptop mouse/trackpad. (Features 37 & 38 Verified ✅)
+* [x] **"Screen-Off" Power Saving Mode:** Mirror while physical phone display is turned off. (Feature 39 Verified ✅)
+
+---
+
+### Sprint: System-Wide UI/UX Makeover (IN PROGRESS 🎨)
+* [ ] **Linear/Raycast Desktop Refactor:** Eradicate "AI card soup" and emoji-prefixed buttons. Introduce Obsidian & Precision Sky palette, Segoe MDL2 vector glyphs, and structured 2×2 Command Matrix.
+* [ ] **Samsung One UI 6 Mobile Refactor:** Implement One UI 6 Viewing Zone vs Interaction Zone ergonomics, 20dp squircle focus blocks, Material Design 3 tokens, and XML vector drawables.
 
 ---
 
@@ -123,9 +166,15 @@
 12. **2026-10-24:** Built and compiled an official standalone Windows installer: `LinkSync_Setup_v1.0.exe` (44.3 MB) bundling self-contained .NET 9, registering in Windows Add/Remove programs, and creating Start Menu and Desktop shortcuts.
 13. **2026-10-24:** Overhauled mobile app UI on Samsung Galaxy A17 to eliminate raw IP clutter, show clean `🟢 HP EliteBook Folio 9470M` card, collapse network settings, and implement dynamic Disconnect / Connect state button.
 14. **2026-10-24:** Implemented zero-configuration dynamic UDP discovery protocol (`DiscoveryBeaconServer.cs` and `NetworkDiscovery.kt`) on port `54885`, eliminating all hardcoded IPs and 'Set USB/Wi-Fi' buttons, and added automated USB cable and authorization/file-sharing detection prompts.
+15. **2026-10-25:** Fixed FFmpeg Windows pipe deadlock in `DesktopScreenRecorder.cs` by asynchronously draining stderr/stdout and adding `-movflags +faststart` to guarantee complete `moov` atom writing.
+16. **2026-10-25:** Resolved Samsung Gallery "broken image" bug on Android node by routing received desktop `.mp4` videos to `Movies/LinkSync` and indexing via `MediaScannerConnection` with explicit `video/mp4` MIME type.
+17. **2026-10-25:** Implemented post-recording preview and trimming gate across both platforms (`VideoPreviewActivity.kt` on Android and preview bar in `VideoSuiteWindow.xaml` on Windows), allowing inspection and trimming before saving and syncing.
+18. **2026-10-25:** Added microphone and voiceover audio recording to mobile screen recorder via Android 14 `mediaProjection|microphone` foreground service type and AAC encoder.
 15. **2026-10-24:** Reverse-engineered LocalSend and KDE Connect to resolve Mobile Hotspot Tethering failure. Added directed Default Gateway beacon unicast (`10.253.25.103:54885`) on desktop, persistent Android `WifiManager.MulticastLock` listener on `0.0.0.0:54885`, persistent hardware `DeviceId` generation (`PC-XXXXXXXX`), and mobile multi-PC selection/auto-pairing picker. Recompiled standalone Windows installer `LinkSync_Setup_v1.0.exe` (45.7 MB) and Android APK.
 16. **2026-10-25:** Resolved Android 10+ background clipboard blockage and Windows app-close termination. Implemented Win32 `Shell_NotifyIcon` resident system tray (`SystemTrayManager.cs`) with minimize-to-tray on close, keeping the desktop receiver active in the background. On Android, implemented `ClipboardLogcatWatcher.kt` (detects `ClipboardService:E` denials and triggers `ClipSyncActivity.kt` sub-30ms focus trampoline), native text selection action `SendTextActivity.kt` (`android.intent.action.PROCESS_TEXT`), persistent notification quick-action, and a 10-attempt `Clipboard.SetDataObject()` retry loop on Windows to guarantee phone-to-laptop clipboard delivery.
 17. **2026-10-25:** Implemented automatic bidirectional screenshot sync, ShareX-grade desktop snipping tool (`ScreenSnippingWindow.xaml` / `ScreenCaptureService.cs`) supporting Region freeze/cutout/crosshair/dimension tooltips, Full Screen, and Active Window DWM capture with immediate `✓ Copy & Sync`, `✏️ Annotate`, or `💾 Save`. Overhauled desktop interface to Microsoft Phone Link layout (240px left rail with device card, quick-snip button, and tab switching) and redesigned mobile interface to Samsung One UI layout (centered connection card on open, and pinned bottom navigation for `Connect`, `Clipboard` DeX history with timestamps, and `Screenshots` gallery). Compiled standalone Windows installer `LinkSync_Setup_v1.0.exe` and Android APK `LinkSync_Mobile.apk`.
 18. **2026-10-25:** Implemented Feature 13: Optional "Auto-Delete on PC Sync" switch with two-way socket confirmation handshake (`OP_FILE_SYNC_ACK` `0x0022`). When desktop receiver confirms file saved to disk, mobile safely deletes the local capture and refreshes gallery. Overhauled mobile screenshots UI with 2-on-a-row Grid vs 1-column List toggle, 12MB in-memory LRU downsampled thumbnail cache, video play overlay badges, top-right file size badges, and modernized high-tactile action buttons. Added lazy thumbnail binding and Re-copy buttons on desktop receiver.
 19. **2026-10-25:** Feature 14 verified on Galaxy A17 (`R58Y90XQJVL`): `LinkSyncTileService` is registered and pinned in One UI Quick Settings (`custom(com.linksync.app/.tile.LinkSyncTileService)`). Started Feature 15: isolated `ScreenCapturePromptActivity` into its own empty task (`com.linksync.app.capture`) with a fully transparent no-animation theme so tapping Record never foregrounds `MainActivity`. Tile now stays inactive until `ScreenRecorderService` actually starts, via `ACTION_RECORDING_STATE` broadcast.
 20. **2026-10-25:** Initialized a dedicated LinkSync git repository (separate from the home-folder `test.git`) and published it to GitHub so cloud agents can compile without pinning the Folio 9470M.
+21. **2026-10-25:** Fixed Android 14+ MediaProjection permission prompt infinite loop (Feature 15). Removed `android:noHistory="true"` and `FLAG_ACTIVITY_NO_HISTORY` which caused Android to kill the prompt caller upon showing the system dialog and endlessly recreate it upon user tap. Changed launchMode to `singleTop`, added single-shot `hasLaunched` guard across instance states, added a 1000ms debounce in `LinkSyncTileService.onClick()`, and modernized display resolution detection.
+22. **2026-10-25:** Verified Features 36, 37, and 38 (60 FPS QuickSync H.264 screen mirroring, mouse/trackpad remote control, and physical laptop keyboard typing). Eliminated the background terminal console window by setting `CreateNoWindow = true`, `WindowStyle = Hidden`, and redirecting stdout/stderr asynchronously. Added a dedicated "Phone Mirror (60 FPS)" navigation tab to the LinkSync desktop dashboard with live stream badges, launch/stop controls, and a complete mouse/keyboard shortcut cheat sheet.

@@ -6,6 +6,9 @@
         MinHeight="600" MinWidth="850"
         WindowStartupLocation="CenterScreen"
         Background="#0B0F19"
+        AllowDrop="True"
+        Drop="Window_Drop"
+        DragOver="Window_DragOver"
         KeyDown="Window_KeyDown">
 
     <Window.Resources>
@@ -111,8 +114,11 @@
 
                 <!-- Tool Selector Group -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Name="BtnOpenFile" Content="📂 Open" ToolTip="Open Image File" Style="{StaticResource HeaderButton}" Margin="0,0,8,0" Click="BtnBrowseImage_Click"/>
+                    <Border Width="1" Background="#374151" Margin="0,4,8,4"/>
                     <RadioButton Name="ToolArrow" Content="🏹 Arrow" Style="{StaticResource ToolRadio}" IsChecked="True" Checked="Tool_Checked"/>
                     <RadioButton Name="ToolStep" Content="① Step" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
+                    <Button Name="BtnResetStep" Content="🔄 #1" ToolTip="Reset Step Badge Counter to 1" Style="{StaticResource HeaderButton}" Padding="6,4" FontSize="10" Margin="0,0,6,0" Click="BtnResetStep_Click"/>
                     <RadioButton Name="ToolRect" Content="🔲 Box" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
                     <RadioButton Name="ToolSpotlight" Content="🔦 Spotlight" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
                     <RadioButton Name="ToolPixelate" Content="⬛ Pixelate" Style="{StaticResource ToolRadio}" Checked="Tool_Checked"/>
@@ -123,13 +129,13 @@
 
                 <!-- Action Buttons Right -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Name="BtnUndo" Content="↩️ Undo" Style="{StaticResource HeaderButton}" Click="BtnUndo_Click"/>
-                    <Button Name="BtnRedo" Content="↪️ Redo" Style="{StaticResource HeaderButton}" Click="BtnRedo_Click"/>
-                    <Button Name="BtnClear" Content="🗑️ Clear" Style="{StaticResource HeaderButton}" Click="BtnClear_Click"/>
+                    <Button Name="BtnUndo" Content="↩️ Undo" ToolTip="Undo (Ctrl+Z)" Style="{StaticResource HeaderButton}" Click="BtnUndo_Click"/>
+                    <Button Name="BtnRedo" Content="↪️ Redo" ToolTip="Redo (Ctrl+Y)" Style="{StaticResource HeaderButton}" Click="BtnRedo_Click"/>
+                    <Button Name="BtnClear" Content="🗑️ Clear" ToolTip="Clear All Annotations" Style="{StaticResource HeaderButton}" Click="BtnClear_Click"/>
                     <Border Width="1" Background="#374151" Margin="8,4"/>
-                    <Button Name="BtnCopy" Content="📋 Copy (Ctrl+C)" Style="{StaticResource HeaderButton}" Background="#059669" Foreground="#ECFDF5" FontWeight="Bold" BorderThickness="0" Click="BtnCopy_Click"/>
-                    <Button Name="BtnSave" Content="💾 Save (Ctrl+S)" Style="{StaticResource HeaderButton}" Background="#2563EB" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnSave_Click"/>
-                    <Button Name="BtnSaveAs" Content="💾 Save As..." Style="{StaticResource HeaderButton}" Click="BtnSaveAs_Click"/>
+                    <Button Name="BtnCopy" Content="📋 Copy (Ctrl+C)" ToolTip="Copy to Clipboard" Style="{StaticResource HeaderButton}" Background="#059669" Foreground="#ECFDF5" FontWeight="Bold" BorderThickness="0" Click="BtnCopy_Click"/>
+                    <Button Name="BtnSave" Content="💾 Save (Ctrl+S)" ToolTip="Save Image" Style="{StaticResource HeaderButton}" Background="#2563EB" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnSave_Click"/>
+                    <Button Name="BtnSaveAs" Content="💾 Save As..." ToolTip="Save Copy..." Style="{StaticResource HeaderButton}" Click="BtnSaveAs_Click"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -171,8 +177,23 @@
         </Border>
 
         <!-- Canvas Workspace Area -->
-        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#0B0F19">
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30">
+        <ScrollViewer Name="WorkspaceScroll" Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#0B0F19"
+                      PreviewMouseWheel="WorkspaceScroll_PreviewMouseWheel">
+            <Grid Name="ZoomHost" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30">
+                <Grid.LayoutTransform>
+                    <ScaleTransform x:Name="CanvasScale" ScaleX="1.0" ScaleY="1.0"/>
+                </Grid.LayoutTransform>
+
+                <!-- Empty State Prompt (shown when no image is loaded) -->
+                <Border Name="EmptyStateBorder" Visibility="Collapsed" Background="#1E293B" CornerRadius="12" BorderBrush="#334155" BorderThickness="2" Width="460" Height="280" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
+                        <TextBlock Text="🖼️" FontSize="44" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock Text="No Screenshot Loaded" FontSize="18" FontWeight="Bold" Foreground="#F8FAFC" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Drag and drop any screenshot here, or press Ctrl+V to paste from Windows clipboard." FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,6,0,16" TextAlignment="Center" TextWrapping="Wrap"/>
+                        <Button Content="📂 Browse for Image..." Style="{StaticResource HeaderButton}" HorizontalAlignment="Center" Padding="16,8" Background="#2563EB" Foreground="White" FontWeight="SemiBold" BorderThickness="0" Click="BtnBrowseImage_Click"/>
+                    </StackPanel>
+                </Border>
+
                 <!-- Drop shadow card border -->
                 <Border Name="CardContainer" Background="#1E293B" CornerRadius="8" BorderBrush="#334155" BorderThickness="1">
                     <Border.Effect>
@@ -216,8 +237,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Name="TxtStatus" Text="Ready • Select a tool to annotate. Step badges auto-increment." Foreground="#94A3B8" FontSize="11"/>
-                <TextBlock Name="TxtDimensions" Grid.Column="1" Text="1080 x 2400 px" Foreground="#64748B" FontSize="11"/>
+                <TextBlock Name="TxtStatus" Text="Ready • Select a tool to annotate. Step badges auto-increment." Foreground="#94A3B8" FontSize="11" VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Name="TxtDimensions" Text="1080 × 2400 px" Foreground="#64748B" FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                    <Border Width="1" Background="#334155" Margin="0,2,12,2"/>
+
+                    <Button Name="BtnZoomOut" Content="➖" ToolTip="Zoom Out (Ctrl+Minus)" Style="{StaticResource HeaderButton}" Padding="6,2" FontSize="10" Click="BtnZoomOut_Click"/>
+                    <TextBlock Name="TxtZoom" Text="100%" Foreground="#94A3B8" FontSize="11" VerticalAlignment="Center" Margin="6,0" MinWidth="36" TextAlignment="Center"/>
+                    <Button Name="BtnZoomIn" Content="➕" ToolTip="Zoom In (Ctrl+Plus)" Style="{StaticResource HeaderButton}" Padding="6,2" FontSize="10" Click="BtnZoomIn_Click"/>
+                    <Button Name="BtnZoom100" Content="1:1" ToolTip="Reset Zoom 100% (Ctrl+0)" Style="{StaticResource HeaderButton}" Padding="6,2" FontSize="11" Margin="4,0,2,0" Click="BtnZoom100_Click"/>
+                    <Button Name="BtnZoomFit" Content="Fit" ToolTip="Fit Image to Window" Style="{StaticResource HeaderButton}" Padding="6,2" FontSize="11" Margin="2,0,0,0" Click="BtnZoomFit_Click"/>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

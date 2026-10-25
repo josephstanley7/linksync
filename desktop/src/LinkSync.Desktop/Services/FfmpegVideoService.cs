@@ -89,6 +89,20 @@ namespace LinkSync.Desktop.Services
             return await RunFfmpegAsync(args, ct);
         }
 
+        public static async Task<bool> ExtractFrameAsync(
+            string inputPath,
+            string outputPath,
+            TimeSpan timestamp,
+            CancellationToken ct = default)
+        {
+            if (!File.Exists(inputPath)) throw new FileNotFoundException("Input video not found", inputPath);
+
+            // Extract high-fidelity frame at exact timestamp
+            string args = $"-y -ss {timestamp:hh\\:mm\\:ss\\.fff} -i \"{inputPath}\" -vframes 1 -q:v 2 \"{outputPath}\"";
+
+            return await RunFfmpegAsync(args, ct);
+        }
+
         public static void CopyFileToClipboard(string filePath)
         {
             if (!File.Exists(filePath)) return;

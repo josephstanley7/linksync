@@ -496,32 +496,48 @@ class ForegroundSyncService : Service() {
                 val fileOffset = 4 + metaLen
                 val fileBytes = payload.copyOfRange(fileOffset, payload.size)
 
-                val picturesDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Screenshots")
-                if (!picturesDir.exists()) picturesDir.mkdirs()
+                val isVideo = fileName.endsWith(".mp4", ignoreCase = true)
+                val targetDir = if (isVideo) {
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "LinkSync")
+                } else {
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Screenshots")
+                }
+                if (!targetDir.exists()) targetDir.mkdirs()
 
-                val destFile = File(picturesDir, fileName)
+                val destFile = File(targetDir, fileName)
                 destFile.writeBytes(fileBytes)
-                Log.i("LinkSyncService", "Saved incoming screenshot from laptop: ${destFile.absolutePath} (${fileBytes.size} bytes)")
+                Log.i("LinkSyncService", "Saved incoming file from laptop: ${destFile.absolutePath} (${fileBytes.size} bytes, isVideo=$isVideo)")
+
+                val mimeType = if (isVideo) {
+                    "video/mp4"
+                } else if (fileName.endsWith(".jpg", ignoreCase = true) || fileName.endsWith(".jpeg", ignoreCase = true)) {
+                    "image/jpeg"
+                } else {
+                    "image/png"
+                }
 
                 MediaScannerConnection.scanFile(
                     applicationContext,
                     arrayOf(destFile.absolutePath),
-                    null
+                    arrayOf(mimeType)
                 ) { path, uri ->
-                    Log.i("LinkSyncService", "Indexed screenshot from PC: $path -> $uri")
-                    Handler(Looper.getMainLooper()).post {
-                        try {
-                            if (uri != null) {
+                    Log.i("LinkSyncService", "Indexed incoming file from PC: $path -> $uri ($mimeType)")
+                    if (!isVideo && uri != null) {
+                        Handler(Looper.getMainLooper()).post {
+                            try {
                                 val clip = ClipData.newUri(contentResolver, "Screenshot from Laptop", uri)
                                 clipboardManager?.setPrimaryClip(clip)
+                            } catch (e: Exception) {
+                                Log.w("LinkSyncService", "Could not set image to clipboard", e)
                             }
-                        } catch (e: Exception) {
-                            Log.w("LinkSyncService", "Could not set image to clipboard", e)
                         }
+                    }
+                    scope.launch {
+                        fileSyncEvent.emit(fileName)
                     }
                 }
 
-                updateNotification("📸 Received $fileName from Laptop")
+                updateNotification(if (isVideo) "🎬 Received $fileName from Laptop" else "📸 Received $fileName from Laptop")
             } catch (e: Exception) {
                 Log.e("LinkSyncService", "Error saving file from laptop", e)
             }

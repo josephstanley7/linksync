@@ -37,6 +37,7 @@ import com.linksync.app.net.DiscoveredDesktop
 import com.linksync.app.net.NetworkDiscovery
 import com.linksync.app.service.ClipboardHistoryItem
 import com.linksync.app.service.ForegroundSyncService
+import com.linksync.app.service.ScreenRecorderService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -132,6 +133,67 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Auto-Delete disabled: Screenshots preserved on phone", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        // Screen Recording Preferences
+        binding.switchRecordAudio.isChecked = prefs.getBoolean("pref_record_audio", true)
+        binding.switchRecordAudio.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("pref_record_audio", isChecked).apply()
+            if (isChecked && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                permissionLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO))
+            }
+        }
+
+        binding.switchAlwaysAskAudio.isChecked = prefs.getBoolean("pref_always_ask_audio", false)
+        binding.switchAlwaysAskAudio.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("pref_always_ask_audio", isChecked).apply()
+        }
+
+        binding.switchHideBubble.isChecked = prefs.getBoolean("pref_hide_floating_controller", true)
+        binding.switchHideBubble.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("pref_hide_floating_controller", isChecked).apply()
+        }
+
+        binding.switchShakeToStop.isChecked = prefs.getBoolean("pref_shake_to_stop", true)
+        binding.switchShakeToStop.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("pref_shake_to_stop", isChecked).apply()
+        }
+
+        // Direct Screen Recording Button & State Sync
+        fun updateRecordButtonUI(recording: Boolean) {
+            if (recording) {
+                binding.btnStartRecord.text = "⏹ Stop Screen Recording"
+                binding.btnStartRecord.backgroundTintList = android.content.res.ColorStateList.valueOf(0xFFDC2626.toInt())
+            } else {
+                binding.btnStartRecord.text = "⏺ Start Screen Recording"
+                binding.btnStartRecord.backgroundTintList = android.content.res.ColorStateList.valueOf(0xFFEF4444.toInt())
+            }
+        }
+        updateRecordButtonUI(ScreenRecorderService.isRecording)
+
+        binding.btnStartRecord.setOnClickListener {
+            if (ScreenRecorderService.isRecording) {
+                val stopIntent = Intent(this, ScreenRecorderService::class.java).apply {
+                    action = ScreenRecorderService.ACTION_STOP
+                }
+                startService(stopIntent)
+            } else {
+                val promptIntent = Intent(this, ScreenCapturePromptActivity::class.java)
+                startActivity(promptIntent)
+            }
+        }
+
+        val recordingStateReceiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val recording = intent?.getBooleanExtra(ScreenRecorderService.EXTRA_RECORDING, false) ?: false
+                updateRecordButtonUI(recording)
+            }
+        }
+        val filter = android.content.IntentFilter(ScreenRecorderService.ACTION_RECORDING_STATE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(recordingStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(recordingStateReceiver, filter)
         }
 
         // Layout Toggle: Grid (2 on a row) vs List
@@ -344,6 +406,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
+        permissions.add(Manifest.permission.RECORD_AUDIO)
 
         val missing = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
@@ -482,7 +545,7 @@ class MainActivity : AppCompatActivity() {
         val screenshotsDir = File(picturesDir, "Screenshots")
         if (screenshotsDir.exists()) {
             screenshotsDir.listFiles { file ->
-                file.extension.equals("png", ignoreCase = true) || file.extension.equals("jpg", ignoreCase = true)
+                file.extension.equals("png", ignoreCase = true) || file.extension.equals("jpg", ignoreCase = true) || file.extension.equals("mp4", ignoreCase = true)
             }?.let {
                 mediaFiles.addAll(it)
             }
@@ -492,7 +555,7 @@ class MainActivity : AppCompatActivity() {
         val dcimScreenshots = File(File(Environment.getExternalStorageDirectory(), "DCIM"), "Screenshots")
         if (dcimScreenshots.exists()) {
             dcimScreenshots.listFiles { file ->
-                file.extension.equals("png", ignoreCase = true) || file.extension.equals("jpg", ignoreCase = true)
+                file.extension.equals("png", ignoreCase = true) || file.extension.equals("jpg", ignoreCase = true) || file.extension.equals("mp4", ignoreCase = true)
             }?.let {
                 mediaFiles.addAll(it)
             }
@@ -908,6 +971,8 @@ class MainActivity : AppCompatActivity() {
                     val retriever = MediaMetadataRetriever()
                     retriever.setDataSource(file.absolutePath)
                     val frame = retriever.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        ?: retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        ?: retriever.frameAtTime
                     retriever.release()
                     frame
                 } else {

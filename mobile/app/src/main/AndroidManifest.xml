@@ -25,6 +25,8 @@
     <!-- Screen Recording & Live Drawing Overlay -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Telephony & SMS -->
     <uses-permission android:name="android.permission.READ_SMS" />
@@ -59,9 +61,8 @@
             android:name=".ScreenCapturePromptActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:taskAffinity="com.linksync.app.capture"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.LinkSync.CapturePrompt" />
 
         <!-- Sub-30ms Transparent Clipboard Capture Trampoline -->
@@ -92,12 +93,19 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <!-- Screen Recording Preview & Trimming Gate -->
+        <activity
+            android:name=".VideoPreviewActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.LinkSync" />
+
         <!-- Screen Recording Service -->
         <service
             android:name=".service.ScreenRecorderService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
+            android:foregroundServiceType="mediaProjection|microphone" />
 
         <!-- Quick Settings Tile for Galaxy A17 Dropdown -->
         <service

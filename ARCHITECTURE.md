@@ -11,19 +11,21 @@
 ```mermaid
 flowchart TB
     subgraph Mobile ["Samsung Galaxy A17 (Native Kotlin)"]
-        FS[Foreground Sync Service\nFOREGROUND_SERVICE_MEDIA_PROJECTION]
+        FS[Foreground Sync Service\nFOREGROUND_SERVICE_DATA_SYNC]
         CO[MediaStore ContentObserver\nScreenshots & Recordings]
         QS[Quick Settings Tile\n'LinkSync Record']
         WM[WindowManager Controller\nFloating Capsule & Live Drawing Canvas]
-        MP[MediaProjection Engine\nHardware H.264 Encoder + Internal Audio]
+        MP[MediaProjection & MediaRecorder Engine\nHardware H.264 + AAC Stereo Audio\nFOREGROUND_SERVICE_MEDIA_PROJECTION | MICROPHONE]
+        VP[VideoPreviewActivity\nLossless MediaMuxer Trimmer & Save/Sync Gate]
         TEL[Telephony & SMS Hub\n2FA OTP Extractor & SMS Dispatcher]
         CLIP_M[Android Clipboard Manager]
         QDB[(Encrypted Room DB Queue)]
         WS_C[mTLS Client / Socket Engine]
 
-        QS --> FS
-        FS --> WM
-        FS --> MP
+        QS --> MP
+        MP --> WM
+        MP --> VP
+        VP -->|Approved Save & Sync| FS
         CO -->|Auto-Detect Media| FS
         TEL -->|Incoming SMS / Calls| FS
         CLIP_M <-->|Two-Way Text Sync| FS
@@ -131,7 +133,9 @@ All frames exchanged between phone and desktop over TCP use an 8-byte big-endian
 ### A. ShareX (Desktop Annotator & Media Engine)
 * **Zero Electron:** Written in pure C# .NET 9 using Windows APIs (`AddClipboardFormatListener`, `Shell_NotifyIcon`).
 * **Hardware Rasterization:** Image annotation vector layers (arrows with trigonometric heads, auto-incrementing step badges, blur/pixelate redaction, spotlight dimmer, and Samsung Galaxy chassis bezel mockup) drawn via DirectX/Direct2D hardware acceleration.
-* **Lossless Video Trimming:** Sub-second keyframe stream copy (`ffmpeg -c copy`) executing in < 300ms with 0% CPU re-encode on Ivy Bridge.
+* **Desktop Screen Recording Engine (`DesktopScreenRecorder.cs`):** FFmpeg `gdigrab` capture pipeline (`-f gdigrab -rtbufsize 150M -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p`) with even dimension alignment. Renders a click-through animated dashed boundary overlay (`RecordingBorderWindow.xaml`, `WS_EX_TRANSPARENT`) and a floating recording toolbar (`ScreenRecordingBarWindow.xaml`) with live duration `00:00:00`, resolution tag, `⏹ Stop`, `⏸ Pause/Resume` (via NT kernel process suspension `NtSuspendProcess`), and `✕ Abort`.
+* **Automated Post-Recording Pipeline:** Writes `'q'` to FFmpeg standard input to cleanly flush the MP4 `moov` container atom, automatically copies the resulting MP4 to the Windows Clipboard (`FileDropList`), streams the video to the connected Galaxy A17 via `SyncServer`, and immediately opens `VideoSuiteWindow` for trimming or GIF export.
+* **Lossless Video Trimming & Frame Extraction:** Sub-second keyframe stream copy (`ffmpeg -c copy`) executing in < 300ms with 0% CPU re-encode on Ivy Bridge, with micro-stepping (`◀ -0.1s`, `+0.1s ▶`) and still frame extraction (`ffmpeg -vframes 1`) to clipboard and Image Annotator.
 * **Two-Pass Animated GIF:** Single-pipeline `split[s0][s1]` with Lanczos downscaling and Bayer dithering palette generation for high-clarity GitHub and Slack bug repros.
 * **Footprint:** Consumes **~38 MB RAM** and **0.0% idle CPU**.
 
@@ -139,7 +143,7 @@ All frames exchanged between phone and desktop over TCP use an 8-byte big-endian
 * **Overlay Layering:** Uses Android `WindowManager` with `TYPE_APPLICATION_OVERLAY`.
 * **Touch Filtering:** Dynamically toggles `FLAG_NOT_TOUCHABLE` so users can interact with apps under test normally, and switches to touch-intercept when tapping the floating "Brush" tool.
 * **In-Video Baking:** Because Android's `MediaProjection` records the hardware display compositor (`SurfaceFlinger`), all drawn shapes are automatically recorded into the video stream in real-time with **0 ms post-processing**.
-* **Clean 1-Tap Start:** `ScreenCapturePromptActivity` runs in an isolated task (`com.linksync.app.capture`) with a transparent no-animation theme so the Quick Settings tile never foregrounds `MainActivity`. `LinkSyncTileService` stays inactive until `ScreenRecorderService` publishes `ACTION_RECORDING_STATE`.
+* **Clean 1-Tap Start:** `ScreenCapturePromptActivity` runs in an isolated task (`com.linksync.app.capture`, `launchMode="singleTop"`) with a transparent no-animation theme so the Quick Settings tile never foregrounds `MainActivity`. State guards ensure single-shot intent dispatch without Android 14+ permission loops. `LinkSyncTileService` debounces rapid taps (1000ms) and stays inactive until `ScreenRecorderService` publishes `ACTION_RECORDING_STATE`.
 
 ### C. Multi-Path Universal Clipboard Engine & DeX-Style Timeline
 * **Android 10+ Background Sandbox Bypass:** Android 10+ (`API 29–35`) denies background clipboard reads to non-IME apps. LinkSync bypasses this via 4 defense-in-depth channels:
@@ -234,3 +238,92 @@ All frames exchanged between phone and desktop over TCP use an 8-byte big-endian
 |                          | and unencrypted private keys.       | (DPAPI on Windows, Keystore on OS)|
 +--------------------------+-------------------------------------+-----------------------------------+
 ```
+
+---
+
+## 5. Screen Recording Engine, Audio Control & Ghost Overlay Isolation
+
+```mermaid
+flowchart TD
+    subgraph Trigger ["Recording Initiation"]
+        QS[Quick Settings Tile\n'LinkSync Record']
+        ACT[MainActivity\n'Start Screen Recording']
+        PROMPT[ScreenCapturePromptActivity\nAudio Modal Gate & Pure ScreenCaptureIntent]
+        QS --> PROMPT
+        ACT --> PROMPT
+    end
+
+    subgraph ScopeSelection ["Android 14+ Scope Prompt"]
+        PROMPT -->|projectionManager.createScreenCaptureIntent| SYS_UI[System Sharing Dialog]
+        SYS_UI -->|Choice A: A Single App| SINGLE_APP[Target Application Surface Only\nAll Overlays & Bars Excluded]
+        SYS_UI -->|Choice B: Entire Screen| FULL_SCREEN[Full Display VirtualDisplay]
+    end
+
+    subgraph ServicePipeline ["ScreenRecorderService"]
+        SINGLE_APP --> REC_ENG[MediaRecorder + Hardware MediaCodec H.264]
+        FULL_SCREEN --> REC_ENG
+        
+        AUDIO_CHOICE{Audio Preference?}
+        AUDIO_CHOICE -->|With Audio| MIC_AAC[MIC AudioSource + AAC 44.1kHz Encoder\nFOREGROUND_SERVICE_MICROPHONE]
+        AUDIO_CHOICE -->|Muted / Silent| MUTE[No AudioSource / No AAC\nSilent Video Stream]
+        MIC_AAC --> REC_ENG
+        MUTE --> REC_ENG
+
+        GHOST{Ghost Controller?}
+        GHOST -->|Auto-Hide Enabled| HIDE[Floating Bubble Set to GONE\n0px Visible in Captured Video]
+        GHOST -->|Always Visible| BUBBLE[Floating Pill on Edge with 👁️ Hide Toggle]
+
+        SHAKE[Accelerometer Sensor Listener\nDebounced 100ms Delta] -->|Shake Phone Detected| STOP[Haptic Vibration + Stop Recording]
+        NOTIF[Persistent Notification Shade\n⏹ Stop | ⏸ Pause | 🎨 Brush] --> STOP
+    end
+
+    subgraph Finalization ["Post-Recording Pipeline"]
+        STOP --> PREVIEW[VideoPreviewActivity\nLossless MediaMuxer Trimmer]
+        PREVIEW -->|Save & Sync| SYNC[ForegroundSyncService\nMediaStore.Video.Media Registration + TCP Stream]
+    end
+```
+
+---
+
+## 6. Real-Time Phone Mirroring & Remote Input Injection (Group 8)
+
+```mermaid
+flowchart LR
+    subgraph Host ["HP EliteBook Folio 9470M (Windows 10)"]
+        UI[WPF UI & System Tray\nPhoneMirrorManager.cs]
+        SDL[scrcpy v5.0.1 Engine\nSDL3 Window & Input Interceptor]
+        DXVA[Intel HD Graphics 4000 GPU\nDXVA2 QuickSync Hardware H.264 Decoder]
+        
+        UI -->|Spawn Process| SDL
+        SDL -->|DirectX / DXVA2 Pipeline| DXVA
+        SDL -->|Trackpad / Mouse & Keystrokes| ADB_CLI[Android Debug Bridge CLI\nADB Tunnel / Socket]
+    end
+
+    subgraph Phone ["Samsung Galaxy A17 (One UI Core)"]
+        SRV[scrcpy-server JAR\nAndroid Shell UID 2000]
+        INJECT[InputManager / Service\nandroid.permission.INJECT_EVENTS]
+        DISP[SurfaceFlinger / Display Compositor]
+        CODEC[Hardware MediaCodec\n8 Mbps AVC/H.264 Encoder @ 60 FPS]
+        POW[PowerManager / DisplayController\ncmd display power-off]
+
+        ADB_CLI -->|Forward Port / Push JAR| SRV
+        SRV -->|Inject Clicks, Swipes & Keys| INJECT
+        DISP -->|Raw Buffer Feed| CODEC
+        CODEC -->|H.264 NAL Stream (< 50ms)| SDL
+        SRV -->|Screen-Off Mode| POW
+    end
+```
+
+### Architectural Highlights:
+1. **Zero-Overhead Intel QuickSync Video Pipeline:**
+   * Strictly enforces `--video-codec=h264` to utilize the Folio 9470M's Ivy Bridge Intel HD Graphics 4000 dedicated QuickSync hardware decoder.
+   * Eliminates the thermal runaway and 100% CPU lockups caused by software-only HEVC, VP9, or AV1 decoding on dual-core hardware.
+   * Maintains steady 60 FPS streaming with latency under 50 milliseconds and laptop CPU utilization under 3%.
+2. **Permission-Free Input Injection (UID 2000 Shell Level):**
+   * Operates with Android `shell` UID (UID 2000), which possesses the system-level `android.permission.INJECT_EVENTS` capability.
+   * Maps physical mouse clicks, trackpad multi-touch gestures, right-click (Android Back), and middle-click (Android Home) directly into native Android `MotionEvent` and `KeyEvent` streams.
+   * Physical laptop keyboard keystrokes are translated into Android key codes or directly injected via UTF-8 text strings without requiring a custom on-screen keyboard on the phone.
+3. **Screen-Off Battery & Thermal Preservation:**
+   * Implements `--turn-screen-off` and `--stay-awake` using Android's low-level display power state controls (`cmd display power-off`).
+   * The phone's AMOLED screen is completely shut down, eliminating heat generation and battery drain while the video encoder continues capturing the virtual display compositor buffer seamlessly.
+

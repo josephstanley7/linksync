@@ -23,6 +23,7 @@ namespace LinkSync.Desktop
         private readonly AdbTunnelManager _adbManager;
         private readonly DiscoveryBeaconServer _discoveryServer;
         private readonly SystemTrayManager _trayManager = new();
+        private readonly PhoneMirrorManager _mirrorManager;
         private ScreenCaptureService _captureService = null!;
         private bool _isExplicitExit = false;
 
@@ -35,6 +36,7 @@ namespace LinkSync.Desktop
         private const string AppRegName = "LinkSync";
 
         public static MainWindow? Instance { get; private set; }
+        public SyncServer SyncServer => _server;
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
         public ObservableCollection<ClipboardItemViewModel> ClipboardItems { get; } = new();
@@ -63,6 +65,9 @@ namespace LinkSync.Desktop
             _adbManager = new AdbTunnelManager(54884);
             _adbManager.PortStatusChanged += OnPortStatusChanged;
 
+            _mirrorManager = new PhoneMirrorManager(_adbManager);
+            _mirrorManager.MirrorStatusChanged += OnMirrorStatusChanged;
+
             _discoveryServer = new DiscoveryBeaconServer(54884, "HP EliteBook Folio 9470M");
 
             Loaded += (s, e) =>
@@ -78,6 +83,7 @@ namespace LinkSync.Desktop
                 if (Instance == this) Instance = null;
                 _trayManager.Dispose();
                 _clipboardWatcher.Dispose();
+                _mirrorManager.Dispose();
                 _adbManager.Dispose();
                 _discoveryServer.Dispose();
                 _server.Stop();
@@ -169,6 +175,16 @@ namespace LinkSync.Desktop
 
             menu.Items.Add(new Separator());
 
+            var itemRecordRegion = new MenuItem { Header = "🎥 Record Screen (Region)" };
+            itemRecordRegion.Click += (s, e) => _captureService.StartScreenRecordingRegion();
+            menu.Items.Add(itemRecordRegion);
+
+            var itemRecordFull = new MenuItem { Header = "🖥️ Record Screen (Full Screen)" };
+            itemRecordFull.Click += (s, e) => _captureService.StartScreenRecordingFullScreen();
+            menu.Items.Add(itemRecordFull);
+
+            menu.Items.Add(new Separator());
+
             var itemFolder = new MenuItem { Header = "📂 Open Screenshots Folder" };
             itemFolder.Click += (s, e) => BtnOpenFolder_Click(s, e);
             menu.Items.Add(itemFolder);
@@ -180,6 +196,14 @@ namespace LinkSync.Desktop
             var itemVideo = new MenuItem { Header = "🎬 Open Video Suite" };
             itemVideo.Click += (s, e) => BtnOpenVideoSuite_Click(s, e);
             menu.Items.Add(itemVideo);
+
+            var itemMirror = new MenuItem { Header = "📱 Mirror Phone Screen (60 FPS)" };
+            itemMirror.Click += async (s, e) => await StartPhoneMirroringAsync(turnScreenOff: false);
+            menu.Items.Add(itemMirror);
+
+            var itemMirrorScreenOff = new MenuItem { Header = "🌙 Mirror Screen-Off (Battery Saver)" };
+            itemMirrorScreenOff.Click += async (s, e) => await StartPhoneMirroringAsync(turnScreenOff: true);
+            menu.Items.Add(itemMirrorScreenOff);
 
             menu.Items.Add(new Separator());
 
@@ -579,17 +603,21 @@ namespace LinkSync.Desktop
 
         private void BtnOpenAnnotator_Click(object sender, RoutedEventArgs e)
         {
-            var ofd = new Microsoft.Win32.OpenFileDialog
+            if (LstMedia.SelectedItem is MediaItemViewModel item && !item.IsVideo && File.Exists(item.FilePath))
             {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All Files (*.*)|*.*",
-                Title = "Select Screenshot to Annotate",
-                InitialDirectory = _server.SaveDirectory
-            };
-
-            if (ofd.ShowDialog() == true)
-            {
-                OpenAnnotator(ofd.FileName);
+                OpenAnnotator(item.FilePath);
+                return;
             }
+
+            var latestImage = LstMedia.Items.OfType<MediaItemViewModel>().FirstOrDefault(m => !m.IsVideo && File.Exists(m.FilePath));
+            if (latestImage != null)
+            {
+                OpenAnnotator(latestImage.FilePath);
+                return;
+            }
+
+            var annotator = new ImageAnnotatorWindow();
+            annotator.Show();
         }
 
         private void BtnOpenVideoSuite_Click(object sender, RoutedEventArgs e)
@@ -696,7 +724,7 @@ namespace LinkSync.Desktop
             }
         }
 
-        public enum NavTab { Overview, Photos, Clipboard, Video, Annotator }
+        public enum NavTab { Overview, Photos, Clipboard, Video, Annotator, Mirror }
 
         private void SwitchTab(NavTab tab)
         {
@@ -705,12 +733,14 @@ namespace LinkSync.Desktop
             ViewClipboard.Visibility = tab == NavTab.Clipboard ? Visibility.Visible : Visibility.Collapsed;
             ViewVideo.Visibility = tab == NavTab.Video ? Visibility.Visible : Visibility.Collapsed;
             ViewAnnotator.Visibility = tab == NavTab.Annotator ? Visibility.Visible : Visibility.Collapsed;
+            ViewMirror.Visibility = tab == NavTab.Mirror ? Visibility.Visible : Visibility.Collapsed;
 
             ResetNavButton(BtnNavOverview, tab == NavTab.Overview);
             ResetNavButton(BtnNavPhotos, tab == NavTab.Photos);
             ResetNavButton(BtnNavClipboard, tab == NavTab.Clipboard);
             ResetNavButton(BtnNavVideo, tab == NavTab.Video);
             ResetNavButton(BtnNavAnnotator, tab == NavTab.Annotator);
+            ResetNavButton(BtnNavMirror, tab == NavTab.Mirror);
 
             TxtPageTitle.Text = tab switch
             {
@@ -719,6 +749,7 @@ namespace LinkSync.Desktop
                 NavTab.Clipboard => "Universal Clipboard Stream",
                 NavTab.Video => "Video Suite & Animated GIF Maker",
                 NavTab.Annotator => "ShareX-Grade Image Annotator",
+                NavTab.Mirror => "Real-Time Phone Mirror & Remote Control",
                 _ => "LinkSync"
             };
         }
@@ -735,12 +766,87 @@ namespace LinkSync.Desktop
         private void BtnNavClipboard_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Clipboard);
         private void BtnNavVideo_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Video);
         private void BtnNavAnnotator_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Annotator);
+        private void BtnNavMirror_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Mirror);
 
         private void BtnSidebarSnip_Click(object sender, RoutedEventArgs e) => _captureService.CaptureRegion();
         private void BtnQuickSnip_Click(object sender, RoutedEventArgs e) => _captureService.CaptureRegion();
         private void BtnFullscreenSnip_Click(object sender, RoutedEventArgs e) => _captureService.CaptureFullScreen();
         private void BtnWindowSnip_Click(object sender, RoutedEventArgs e) => _captureService.CaptureActiveWindow();
+
+        public void StartRegionScreenRecording() => _captureService.StartScreenRecordingRegion();
+        public void StartFullscreenScreenRecording() => _captureService.StartScreenRecordingFullScreen();
+
+        private void BtnSidebarRecord_Click(object sender, RoutedEventArgs e) => StartRegionScreenRecording();
+        private void BtnQuickRecord_Click(object sender, RoutedEventArgs e) => StartRegionScreenRecording();
+        private void BtnFullscreenRecord_Click(object sender, RoutedEventArgs e) => StartFullscreenScreenRecording();
         private void BtnClearClipboardDesktop_Click(object sender, RoutedEventArgs e) => ClipboardItems.Clear();
+
+        private async Task StartPhoneMirroringAsync(bool turnScreenOff)
+        {
+            if (_mirrorManager.IsMirroringActive)
+            {
+                _mirrorManager.StopMirror();
+                return;
+            }
+
+            var options = new MirrorOptions
+            {
+                TurnScreenOff = turnScreenOff,
+                AlwaysOnTop = false,
+                BitRateMbps = 8,
+                MaxFps = 60
+            };
+
+            bool success = await _mirrorManager.StartMirrorAsync(options);
+            if (!success)
+            {
+                MessageBox.Show(
+                    "Could not start phone mirroring.\n\nPlease verify:\n1. Your phone is connected via Wi-Fi or USB.\n2. USB debugging / Wireless debugging is enabled in Developer Options on your phone.",
+                    "LinkSync Mirror",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private async void BtnStartMirror_Click(object sender, RoutedEventArgs e)
+        {
+            await StartPhoneMirroringAsync(turnScreenOff: false);
+        }
+
+        private async void BtnScreenOffMirror_Click(object sender, RoutedEventArgs e)
+        {
+            await StartPhoneMirroringAsync(turnScreenOff: true);
+        }
+
+        private void OnMirrorStatusChanged(bool isActive)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (isActive)
+                {
+                    BtnStartMirror.Content = "⏹ Stop Mirroring";
+                    BtnStartMirror.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+                    BtnQuickMirror.Content = "⏹ Stop Mirror";
+                    BtnQuickMirror.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+                    BtnTabStartMirror.Content = "⏹ Stop Mirror";
+                    BtnTabStartMirror.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+                    BadgeMirrorActive.Visibility = Visibility.Visible;
+                    BadgeMirrorInactive.Visibility = Visibility.Collapsed;
+                    _trayManager.ShowBalloon("📱 Phone Mirror Active", "Streaming Samsung Galaxy A17 at 60 FPS (Hardware QuickSync H.264).\nMouse and keyboard control active! Press Alt+O to turn screen off.");
+                }
+                else
+                {
+                    BtnStartMirror.Content = "📱 Start Mirroring";
+                    BtnStartMirror.Background = new SolidColorBrush(Color.FromRgb(2, 132, 199));
+                    BtnQuickMirror.Content = "📱 Mirror (60 FPS)";
+                    BtnQuickMirror.Background = new SolidColorBrush(Color.FromRgb(2, 132, 199));
+                    BtnTabStartMirror.Content = "📱 Launch Mirror";
+                    BtnTabStartMirror.Background = new SolidColorBrush(Color.FromRgb(2, 132, 199));
+                    BadgeMirrorActive.Visibility = Visibility.Collapsed;
+                    BadgeMirrorInactive.Visibility = Visibility.Visible;
+                }
+            });
+        }
 
         private void BtnCopyMediaItem_Click(object sender, RoutedEventArgs e)
         {

@@ -180,6 +180,136 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Screen Recording Preferences Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="#334155"
+                    app:cardBackgroundColor="#0F172A">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📹 Screen Recording Preferences"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            android:textColor="#F1F5F9" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Audio settings and clean video options"
+                            android:textSize="12sp"
+                            android:textColor="#94A3B8" />
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="12dp"
+                            app:dividerColor="#1E293B" />
+
+                        <!-- Audio Choice Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchRecordAudio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="🎙️ Record with Audio (Microphone)"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="true" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Capture voice narration &amp; explanations. Turn off for silent video."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                        <!-- Always Ask Audio Choice Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchAlwaysAskAudio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="❓ Ask Audio Choice Every Time"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="false" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Show audio selection popup each time you tap Record."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                        <!-- Hide Floating Bubble Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchHideBubble"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="👻 Hide Bubble in Recorded Video"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="true" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Keeps the floating controller out of the recording for clean video."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                        <!-- Shake Phone to Stop Toggle -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchShakeToStop"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="📳 Shake Phone to Stop Recording"
+                            android:textColor="#F8FAFC"
+                            android:textSize="14sp"
+                            android:checked="true" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Gently shake phone to end recording without pulling notification bar."
+                            android:textColor="#64748B"
+                            android:textSize="11sp" />
+
+                        <!-- Start Screen Recording Button -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStartRecord"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="16dp"
+                            android:text="⏺ Start Screen Recording"
+                            android:backgroundTint="#EF4444"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="10dp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
         </ScrollView>
 

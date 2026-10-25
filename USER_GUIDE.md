@@ -116,27 +116,73 @@ LinkSync brings the full screenshot power of **ShareX** to your Windows system t
 
 ---
 
-## Step 4: Screen Recording with Live On-Screen Drawing
+## Step 4: Screen Recording on Mobile (XRecorder-Style) & Laptop (ShareX-Style)
 
+### A. Recording Your Phone Screen (XRecorder Patterns):
 Because your Galaxy A17 does not come with a built-in screen recorder, LinkSync puts one right into your notification menu:
 
-1. **Swipe down from the very top of your phone screen** twice to open the full Samsung Quick Settings menu.
-2. Look for the button titled **"LinkSync Record"**. (If you don't see it, tap the three dots or pencil icon in the top right, tap "Edit Buttons", and drag LinkSync Record into your active list).
-3. **Tap "LinkSync Record":**
-   * Stay in whatever app you were already using. LinkSync itself will not open.
-   * A small system permission message will ask if you want to record your screen. Tap **"Start now"**.
-   * A tiny floating circle (bubble) will appear on the edge of your screen (if overlay permission is already granted).
-4. **Drawing on Your Screen while Recording:**
-   * Tap the **Brush icon** on the floating circle.
-   * A mini drawing toolbar will slide out:
-     * 🏹 **Arrow:** Tap and drag to draw a clean arrow pointing at a button or bug.
-     * 🔲 **Rectangle:** Drag to draw a box around an error message.
-     * 🔢 **Step Badges (①, ②, ③):** Tap anywhere on the screen to drop numbered circles showing the steps of how a problem happened.
-     * ✏️ **Pen:** Freehand drawing or circling.
-   * Tap the **Hand/Cursor icon** whenever you want to stop drawing and tap on apps normally again.
-5. **Stopping and Syncing:**
-   * When you are done, tap the red **Stop button** on the floating circle (or swipe down your notification menu and tap the tile again).
-   * The video is saved and **automatically uploaded straight to your laptop**!
+1. **Start Recording Anytime:**
+   * **From Quick Settings:** Swipe down from the very top of your phone screen twice and tap **"LinkSync Record"**.
+   * **From LinkSync App:** Open LinkSync and tap the red **"⏺ Start Screen Recording"** button inside the Connection screen.
+2. **Audio Choice (Microphone vs. Silent):**
+   * Before recording begins, an audio preferences popup appears:
+     * 🎙️ **Record with Audio:** Captures your microphone and voice narration in crisp 44.1 kHz AAC stereo.
+     * 🔇 **Record without Sound:** Produces a 100% silent, lightweight video.
+     * ☑️ **Remember my choice:** Check this to remember your setting so future recordings start in 1 tap without asking. (You can toggle "Ask Audio Choice Every Time" in the LinkSync app settings).
+3. **Choose "A Single App" vs. "Entire Screen":**
+   * LinkSync fully supports Android 14+ App Screen Sharing:
+     * **A Single App:** Choose any specific app (Chrome, WhatsApp, Settings). Android captures *only* that application window—all status bars, notifications, and floating overlays are automatically excluded from the video!
+     * **Entire Screen:** Records your entire phone display.
+4. **Clean Videos (Floating Bubble Controller Hidden):**
+   * In XRecorder fashion, the floating bubble controller is **automatically hidden** during active recording so your video remains 100% clean with zero UI obstructions!
+   * **How to control while hidden:**
+     * 📳 **Shake Phone to Stop:** Simply shake your phone! LinkSync vibrates with haptic feedback and immediately finalizes the recording.
+     * 📲 **Notification Bar Controls:** Swipe down your notification shade for instant `[ ⏹ Stop ]`, `[ ⏸ Pause / ▶ Resume ]`, and `[ 🎨 Brush ]` actions.
+     * 👁️ **Manual Hide/Show:** If you choose to keep the bubble visible in settings, tap `👁️` on the capsule to hide it anytime.
+5. **Live On-Screen Drawing (While Recording):**
+   * Tap **`🎨 Brush`** in the notification shade (or on the bubble) to open the drawing palette:
+     * 🏹 **Arrow:** Drag across the screen to draw a sharp vector arrow pointing directly at a bug.
+     * 🔲 **Rectangle:** Drag to frame an error banner.
+     * 🔢 **Step Badges (①, ②, ③):** Tap anywhere on the screen to drop auto-incrementing numbered circles.
+     * ✏️ **Pen:** Freehand smooth sketch.
+   * **Switch back to touching apps:** Tap **`👆 Touch`** to resume navigating apps normally while your drawings stay visible on screen!
+6. **Post-Recording Preview & Trimming Gate:**
+   * When you finish recording, LinkSync opens the preview player immediately. Review playback, trim start/end points with zero re-encoding loss, and tap **`⚡ Save & Sync to Laptop`**!
+
+---
+
+### B. Recording Your Laptop Desktop (ShareX-Style):
+LinkSync brings the complete screen recording pipeline of **ShareX** to your Windows desktop using hardware-accelerated H.264 video:
+
+1. **Start Desktop Recording:**
+   * **From Left Sidebar:** Click **"🎥 Record Screen (ShareX)"** at the bottom of the navigation rail.
+   * **From Header:** Click the red **"🎥 Record"** button at the top right of the window.
+   * **From System Tray:** Right-click the LinkSync tray icon $\rightarrow$ **"🎥 Record Screen (Region)"** or **"🖥️ Record Screen (Full Screen)"**.
+   * **From Region Snip:** In the snipping overlay, drag any box on your screen and click **"🎥 Record Region"** (or press Enter).
+2. **ShareX Floating Recording Toolbar:**
+   * An unbordered, floating control toolbar appears on your screen with:
+     * 🔴 **Blinking REC Dot** and bold `REC` indicator.
+     * ⏱️ **Live Duration:** `00:00:00` updating every second.
+     * 📐 **Resolution Tag:** Displays exact recorded width and height (e.g. `1280 × 720`).
+     * ⏸️ **Pause / Resume:** Freezes recording at the Windows kernel level (0% CPU).
+     * ⏹️ **Stop:** Cleanly flushes the MP4 container and saves the recording.
+     * ✕ **Abort:** Instantly discards and deletes the recording if you made a mistake.
+   * While recording a region, an animated red dashed border frames the recorded area.
+3. **ShareX & XRecorder Post-Recording Preview Gate:**
+   * When you click **`⏹ Stop`** on either phone or laptop, LinkSync does **not** blindly send the video before you have a chance to review it.
+   * **On Phone (`VideoPreviewActivity`):** An inline player opens with Play/Pause, timeline scrubber, and Start/End trimming handles.
+     * Tap **`⚡ Save & Sync to Laptop`** to losslessly trim (if points are set), save to your phone gallery under `Movies/LinkSync`, and stream to your laptop.
+     * Tap **`💾 Save to Phone Gallery Only`** to save locally without network sync.
+     * Tap **`🗑️ Discard Recording`** to permanently delete the video.
+   * **On Laptop (`VideoSuiteWindow` Preview Mode):** A top preview banner appears over the Video Suite:
+     * Click **`⚡ Save & Sync to Phone`** to trim (if markers are set), copy to Windows clipboard, and stream to your Galaxy A17!
+     * Click **`💾 Save Locally`** to save to `Pictures\LinkSync\Screenshots` and copy to clipboard.
+     * Click **`🗑️ Discard`** to delete the recording.
+4. **Crystal-Clear Audio Recording:**
+   * Mobile screen recordings now capture synchronized stereo AAC audio (44.1 kHz, 128 kbps) along with your voiceover explanations using Android 14+ dual foreground service permissions (`mediaProjection|microphone`).
+   * When prompted for microphone permission upon starting recording, tap **"While using the app"** or **"Only this time"**.
+5. **Zero Broken Images in Phone Gallery:**
+   * All screen recordings transferred from laptop to phone are safely saved in `Movies/LinkSync` and registered under Android's video index (`MediaStore.Video.Media`). Samsung Gallery displays real video thumbnails with play icons—never broken pictures!
 
 ---
 
@@ -145,10 +191,14 @@ Because your Galaxy A17 does not come with a built-in screen recorder, LinkSync 
 When you take a screenshot, you often need to highlight a bug, hide sensitive private details (like passwords or API tokens), or number the steps:
 
 1. **Opening the Annotator:**  
-   In the LinkSync window on your laptop, find the screenshot in your list on the left and click **"✏️ Annotate"** (or double-click the item). You can also click the top button **"✏️ Annotator"** to open any picture from your PC.
+   * **From Desktop App:** Double-click any screenshot in the LinkSync media gallery (or click its pink **"✏️ Annotate"** button).
+   * **From System Tray:** Right-click the tray icon and choose **"✏️ Open Image Annotator"**.
+   * **Drag & Drop:** Drag and drop any image file directly into the annotator window.
+   * **Paste from Clipboard:** Press **`Ctrl + V`** inside the annotator to immediately edit whatever screenshot is currently in your Windows clipboard!
+   * **Zoom & Pan:** Hold **`Ctrl` and scroll your mouse wheel** to zoom in and out smoothly (or use the bottom right zoom buttons: `Fit`, `1:1`, `➕`, `➖`).
 2. **Professional Bug-Reporting Tools:**
    * 🏹 **Vector Arrows:** Drag to draw an arrow pointing directly at a button or error message. Choose your favorite color and line thickness.
-   * ① **Step Number Badges:** Tap anywhere on the image to drop a numbered circle (`①`, `②`, `③`...). The number increments automatically for step-by-step bug reproduction guides.
+   * ① **Step Number Badges:** Tap anywhere on the image to drop a numbered circle (`①`, `②`, `③`...). Click `[🔄 #1]` anytime to restart your step count back to 1.
    * 🔲 **Box / Rectangle:** Drag to outline an input field or modal dialog.
    * 🔦 **Spotlight / Dimmer:** Drag a box around a feature. The rest of the screen will automatically dim with a dark mask, spotlighting the exact button you want viewers to focus on.
    * ⬛ **Mosaic Pixelation:** Drag a box over passwords, API keys, or credit card numbers to permanently scramble them with pixelation.
@@ -211,6 +261,46 @@ Copying links, passwords, and verification codes back and forth is completely au
 * **Hover:** Hovering over the icon shows the live status (e.g., `LinkSync — Connected: Samsung SM_A175F`).
 * **Reopen:** Double-click or single-click the tray icon anytime to bring the window back to the screen.
 * **Exit:** Right-click the tray icon and select **"Exit LinkSync"** if you want to completely shut it down.
+
+---
+
+## Step 8: Real-Time Phone Mirroring & Remote Control (Samsung Galaxy A17)
+
+Samsung deliberately restricts "Samsung DeX" to expensive flagship phones and completely blocks it on Galaxy A-series devices. **LinkSync breaks this barrier**, bringing high-performance 60 FPS real-time phone mirroring and full laptop control to your Samsung Galaxy A17!
+
+### A. Starting the Mirror Window:
+1. Ensure your phone is connected to your laptop (via Wi-Fi or USB cable).
+2. On your laptop, you can start mirroring in any of these 4 convenient ways:
+   * **From Overview:** Click the large **"📱 Start Mirroring"** button inside the "Real-Time Phone Mirroring" card.
+   * **From Sidebar:** Click **"📱 Phone Mirror (60 FPS)"** on the left navigation rail.
+   * **From Header:** Click the quick **"📱 Mirror"** button in the top right header strip.
+   * **From System Tray:** Right-click the LinkSync icon by the clock and select **"📱 Mirror Phone Screen (60 FPS)"**.
+3. A crisp, high-definition window titled **`LinkSync Phone Mirror (Samsung Galaxy A17)`** pops up immediately!
+4. **Hardware-Accelerated Smoothness:** The stream runs at a fluid **60 FPS** using native **Intel HD Graphics QuickSync H.264 decoding**, so your laptop fans stay quiet and your CPU usage stays under 3%.
+
+### B. Controlling Your Phone with Laptop Mouse & Trackpad:
+You can interact with your phone just like touching the screen:
+* **Left Click:** Tap buttons, open apps, activate toggles.
+* **Click & Drag:** Swipe between home screens, pull down the notification shade, or swipe away apps.
+* **Mouse Scroll Wheel:** Scroll smoothly up and down web pages, Instagram feeds, and long lists.
+* **Right-Click:** Instantly triggers the Android **Back** button.
+* **Middle-Click:** Instantly triggers the Android **Home** button.
+* **Right-Click & Drag:** Pulls down the Android notification shade from anywhere on the screen!
+
+### C. Typing with Your Laptop Keyboard:
+* Click inside any search bar, password input, or chat message box on the mirrored screen.
+* Type directly using your physical laptop keyboard!
+* **Instant Text Injection:** Text appears on your phone screen in real-time, making filling out long registration forms, typing code, or messaging contacts 10x faster.
+* Special keys like `Enter`, `Backspace`, arrow navigation, and `Ctrl + A` work seamlessly.
+
+### D. "Screen-Off" Power Saving Mode (Keep Phone Cool & Battery Full):
+During long phone testing or mirroring sessions, keeping the phone's physical screen turned on generates heat and drains battery:
+1. In LinkSync on your laptop, click **"🌙 Screen-Off Mirror"** (or in the system tray, select **"🌙 Mirror Screen-Off (Battery Saver)"**).
+2. Alternatively, inside an active mirror window, press:  
+   ⌨️ **`Alt + O`** (or `Ctrl + O`)
+3. Your physical Samsung phone screen will immediately turn completely black!
+4. You can continue interacting, clicking, typing, and testing apps on your laptop screen while your phone stays cold and uses almost no battery.
+5. Press **`Alt + Shift + O`** (or press the phone's physical power button) whenever you want to turn the physical screen back on.
 
 ---
 

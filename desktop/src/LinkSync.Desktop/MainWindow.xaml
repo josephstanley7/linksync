@@ -129,13 +129,17 @@
                     <Button Name="BtnNavClipboard" Content="📋   Clipboard Stream" Style="{StaticResource NavRailButton}" Click="BtnNavClipboard_Click"/>
                     <Button Name="BtnNavVideo" Content="🎬   Video Suite" Style="{StaticResource NavRailButton}" Click="BtnNavVideo_Click"/>
                     <Button Name="BtnNavAnnotator" Content="✏️   Image Annotator" Style="{StaticResource NavRailButton}" Click="BtnNavAnnotator_Click"/>
+                    <Button Name="BtnNavMirror" Content="📱   Phone Mirror (60 FPS)" Style="{StaticResource NavRailButton}" Click="BtnNavMirror_Click"/>
                 </StackPanel>
 
-                <!-- 3. Bottom Quick Action Button: ShareX Snip -->
+                <!-- 3. Bottom Quick Action Button: ShareX Snip & Record -->
                 <StackPanel Grid.Row="2" Orientation="Vertical">
                     <Button Name="BtnSidebarSnip" Content="📸   Snip Screen (ShareX)" Style="{StaticResource PrimaryButton}" 
-                            Background="#10B981" Foreground="White" FontSize="12" Margin="0,0,0,8"
+                            Background="#10B981" Foreground="White" FontSize="12" Margin="0,0,0,6"
                             Click="BtnSidebarSnip_Click"/>
+                    <Button Name="BtnSidebarRecord" Content="🎥   Record Screen (ShareX)" Style="{StaticResource PrimaryButton}" 
+                            Background="#EF4444" Foreground="White" FontSize="12" Margin="0,0,0,8"
+                            Click="BtnSidebarRecord_Click"/>
                     <TextBlock Text="HP Folio 9470M Receiver" FontSize="10" Foreground="#475569" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Grid>
@@ -165,7 +169,9 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Name="BtnOpenFolder" Content="📁 Screenshots" Style="{StaticResource PrimaryButton}" Background="#1E293B" Foreground="#94A3B8" Margin="0,0,6,0" Click="BtnOpenFolder_Click"/>
                     <Button Name="BtnAdbTunnel" Content="⚡ USB ADB" Style="{StaticResource PrimaryButton}" Background="#1E293B" Foreground="#94A3B8" Margin="0,0,6,0" Click="BtnAdbTunnel_Click"/>
-                    <Button Name="BtnQuickSnip" Content="📸 Snip" Style="{StaticResource PrimaryButton}" Background="#2563EB" Click="BtnQuickSnip_Click"/>
+                    <Button Name="BtnQuickMirror" Content="📱 Mirror (60 FPS)" Style="{StaticResource PrimaryButton}" Background="#0284C7" Margin="0,0,6,0" Click="BtnStartMirror_Click"/>
+                    <Button Name="BtnQuickSnip" Content="📸 Snip" Style="{StaticResource PrimaryButton}" Background="#2563EB" Margin="0,0,6,0" Click="BtnQuickSnip_Click"/>
+                    <Button Name="BtnQuickRecord" Content="🎥 Record" Style="{StaticResource PrimaryButton}" Background="#EF4444" Click="BtnQuickRecord_Click"/>
                 </StackPanel>
             </Grid>
 
@@ -206,8 +212,9 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Card 1: ShareX Region Snip -->
@@ -255,7 +262,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- Card 4: Video Suite & GIF -->
+                    <!-- Card 4: Video Suite & Screen Recording -->
                     <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardPanel}" Margin="8,8,0,0">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -263,9 +270,40 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="🎬 Video Suite &amp; Lossless GIF" FontSize="15" FontWeight="Bold" Foreground="#C084FC"/>
-                            <TextBlock Grid.Row="1" Text="Sub-second keyframe video trimming and crystal-clear animated GIF conversion optimized for GitHub &amp; Slack." FontSize="12" Foreground="#94A3B8" Margin="0,6,0,0" TextWrapping="Wrap"/>
-                            <Button Grid.Row="2" Name="BtnOpenVideoSuite" Content="Open Video Suite" Style="{StaticResource PrimaryButton}" Background="#7C3AED" Click="BtnOpenVideoSuite_Click"/>
+                            <TextBlock Text="🎬 Video Suite &amp; Screen Recording" FontSize="15" FontWeight="Bold" Foreground="#C084FC"/>
+                            <TextBlock Grid.Row="1" Text="ShareX-grade screen recording (region/fullscreen), sub-second keyframe trimming, and high-fps GIF conversion." FontSize="12" Foreground="#94A3B8" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                                <Button Content="🎥 Record Region" Style="{StaticResource PrimaryButton}" Background="#EF4444" Margin="0,0,6,0" Click="BtnSidebarRecord_Click"/>
+                                <Button Content="🖥️ Fullscreen" Style="{StaticResource PrimaryButton}" Background="#0284C7" Margin="0,0,6,0" Click="BtnFullscreenRecord_Click"/>
+                                <Button Name="BtnOpenVideoSuite" Content="Open Suite" Style="{StaticResource PrimaryButton}" Background="#7C3AED" Click="BtnOpenVideoSuite_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Card 5: Real-Time Phone Mirroring (DeX-Grade, 60 FPS) -->
+                    <Border Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource CardPanel}" Margin="0,12,0,0" BorderBrush="#0284C7" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="📱" FontSize="36" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Real-Time Phone Mirroring &amp; Control" FontSize="15" FontWeight="Bold" Foreground="#38BDF8"/>
+                                    <Border Background="#0C4A6E" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="60 FPS • QuickSync H.264" FontSize="10" FontWeight="Bold" Foreground="#38BDF8"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Stream your Samsung Galaxy A17 screen live on your laptop with sub-50ms latency. Click with mouse, type with physical keyboard, or turn the phone screen off." FontSize="12" Foreground="#94A3B8" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                <Button Name="BtnStartMirror" Content="📱 Start Mirroring" Style="{StaticResource PrimaryButton}" Background="#0284C7" FontSize="12" Padding="14,8" Margin="0,0,8,0" Click="BtnStartMirror_Click"/>
+                                <Button Name="BtnScreenOffMirror" Content="🌙 Screen-Off" ToolTip="Mirror with physical phone display turned black to save battery" Style="{StaticResource PrimaryButton}" Background="#1E293B" Foreground="#38BDF8" BorderBrush="#0284C7" BorderThickness="1" FontSize="12" Padding="12,8" Click="BtnScreenOffMirror_Click"/>
+                            </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>
@@ -427,6 +465,98 @@
                         <Button Content="✏️ Open Image Annotator" Style="{StaticResource PrimaryButton}" Background="#DB2777" FontSize="14" Padding="20,12" HorizontalAlignment="Center" Click="BtnOpenAnnotator_Click"/>
                     </StackPanel>
                 </Border>
+            </Grid>
+
+            <!-- TAB 6: PHONE MIRROR & REMOTE CONTROL VIEW -->
+            <Grid Name="ViewMirror" Grid.Row="1" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,8,0">
+                        <!-- Hero Card -->
+                        <Border Style="{StaticResource CardPanel}" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="📱 Real-Time Phone Mirror &amp; Remote Control" FontSize="18" FontWeight="Bold" Foreground="#38BDF8"/>
+                                    <TextBlock Text="Hardware-accelerated 60 FPS H.264 stream decoded by Intel QuickSync GPU with full mouse and physical keyboard input." FontSize="12" Foreground="#94A3B8" Margin="0,4,0,12" TextWrapping="Wrap"/>
+                                    
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Name="BadgeMirrorActive" Background="#064E3B" CornerRadius="12" Padding="10,4" Margin="0,0,8,0" Visibility="Collapsed">
+                                            <TextBlock Text="🟢 Stream Active (60 FPS)" FontSize="11" FontWeight="Bold" Foreground="#34D399"/>
+                                        </Border>
+                                        <Border Name="BadgeMirrorInactive" Background="#1E293B" CornerRadius="12" Padding="10,4" Margin="0,0,8,0">
+                                            <TextBlock Text="⚪ Inactive" FontSize="11" FontWeight="Bold" Foreground="#94A3B8"/>
+                                        </Border>
+                                        <Border Background="#1E293B" CornerRadius="12" Padding="10,4" Margin="0,0,8,0">
+                                            <TextBlock Text="⚡ QuickSync H.264" FontSize="11" Foreground="#94A3B8"/>
+                                        </Border>
+                                        <Border Background="#1E293B" CornerRadius="12" Padding="10,4">
+                                            <TextBlock Text="🚀 Latency &lt; 50ms" FontSize="11" Foreground="#94A3B8"/>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Name="BtnTabStartMirror" Content="📱 Launch Mirror" Style="{StaticResource PrimaryButton}" Background="#0284C7" FontSize="13" Padding="16,10" Margin="0,0,8,0" Click="BtnStartMirror_Click"/>
+                                    <Button Name="BtnTabScreenOffMirror" Content="🌙 Screen-Off Mirror" Style="{StaticResource PrimaryButton}" Background="#1E293B" Foreground="#38BDF8" FontSize="13" Padding="14,10" Click="BtnScreenOffMirror_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Two-Column Cards: Controls & Shortcuts + Settings -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left: Shortcuts Cheat Sheet -->
+                            <Border Grid.Column="0" Style="{StaticResource CardPanel}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="⌨️ Mouse &amp; Keyboard Controls" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" Margin="0,0,0,10"/>
+                                    
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="🖱️ Left Click / Drag" FontSize="12" FontWeight="SemiBold" Foreground="#38BDF8"/>
+                                        <TextBlock Text="Tap &amp; swipe phone screen" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="🖱️ Right-Click" FontSize="12" FontWeight="SemiBold" Foreground="#38BDF8"/>
+                                        <TextBlock Text="Android Back Button" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="🖱️ Middle-Click" FontSize="12" FontWeight="SemiBold" Foreground="#38BDF8"/>
+                                        <TextBlock Text="Android Home Button" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="⌨️ Physical Laptop Keyboard" FontSize="12" FontWeight="SemiBold" Foreground="#34D399"/>
+                                        <TextBlock Text="Direct typing into phone fields" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="⌨️ Alt + F / F11" FontSize="12" FontWeight="SemiBold" Foreground="#F59E0B"/>
+                                        <TextBlock Text="Toggle Fullscreen" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <TextBlock Text="⌨️ Alt + O" FontSize="12" FontWeight="SemiBold" Foreground="#A78BFA"/>
+                                        <TextBlock Text="Turn Screen OFF (Saves Battery)" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Right: Architecture & Multitasking Advantage -->
+                            <Border Grid.Column="1" Style="{StaticResource CardPanel}" Margin="8,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="💡 Multitasking &amp; Layout Advantage" FontSize="14" FontWeight="Bold" Foreground="#F8FAFC" Margin="0,0,0,10"/>
+                                    <TextBlock Text="Why a Floating Window is Superior:" FontSize="12" FontWeight="SemiBold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+                                    <TextBlock Text="• Snap Side-by-Side: Press Win + Left/Right to keep your Galaxy A17 right next to VS Code, Slack, or your web browser." FontSize="11" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,0,0,6" LineHeight="16"/>
+                                    <TextBlock Text="• Multi-Monitor Support: Drag your phone mirror onto a second monitor while working on laptop." FontSize="11" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,0,0,6" LineHeight="16"/>
+                                    <TextBlock Text="• Zero Terminal Clutter: The background console is completely suppressed. You only see the clean, high-framerate phone display." FontSize="11" Foreground="#94A3B8" TextWrapping="Wrap" LineHeight="16"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
 
         </Grid>

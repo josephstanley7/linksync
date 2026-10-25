@@ -70,12 +70,37 @@
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Preview & Sync Action Bar (Shown after recording) -->
+        <Border Name="PanelPreviewBar" Grid.Row="0" Background="#064E3B" BorderBrush="#059669" BorderThickness="1.5" CornerRadius="8" Padding="14,10" Margin="0,0,0,14" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🎬" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Screen Recording Preview" FontWeight="Bold" Foreground="#FFFFFF" FontSize="14"/>
+                        <TextBlock Text="Trim your video or save directly. Click '⚡ Save &amp; Sync to Phone' to push to Galaxy A17." Foreground="#A7F3D0" FontSize="11"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Name="BtnSaveAndSyncPhone" Content="⚡ Save &amp; Sync to Phone" Style="{StaticResource ActionButton}" Background="#10B981" Foreground="#FFFFFF" Padding="14,8" Margin="0,0,8,0" Click="BtnSaveAndSyncPhone_Click"/>
+                    <Button Name="BtnSaveLocalOnly" Content="💾 Save Locally" Style="{StaticResource ActionButton}" Background="#1E293B" Foreground="#E2E8F0" Padding="12,8" Margin="0,0,8,0" Click="BtnSaveLocalOnly_Click"/>
+                    <Button Name="BtnDiscardRecording" Content="🗑️ Discard" Style="{StaticResource OutlineButton}" Background="#7F1D1D" Foreground="#FCA5A5" BorderThickness="0" Padding="10,8" Click="BtnDiscardRecording_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
         <!-- Top Header Bar -->
-        <Grid Grid.Row="0" Margin="0,0,0,14">
+        <Grid Grid.Row="1" Margin="0,0,0,14">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -87,12 +112,13 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Name="BtnRecordNew" Content="🎥 Record New" Style="{StaticResource ActionButton}" Background="#EF4444" Margin="0,0,8,0" Click="BtnRecordNew_Click"/>
                 <Button Name="BtnOpenVideo" Content="📁 Open Another Video" Style="{StaticResource OutlineButton}" Click="BtnOpenVideo_Click"/>
             </StackPanel>
         </Grid>
 
         <!-- Main Body: Left (Video Player & Timeline) / Right (Tools Panel) -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*"/>
                 <ColumnDefinition Width="2*"/>
@@ -111,7 +137,9 @@
                     <Border Grid.Row="0" Background="#000000" CornerRadius="6" ClipToBounds="True">
                         <MediaElement Name="Player" LoadedBehavior="Manual" UnloadedBehavior="Stop"
                                       MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"
-                                      Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                      Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      RenderOptions.BitmapScalingMode="HighQuality"
+                                      SnapsToDevicePixels="True"/>
                     </Border>
 
                     <!-- Timeline Scrubbing Slider -->
@@ -137,9 +165,12 @@
 
                         <!-- Transport Buttons -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
-                            <Button Name="BtnPlayPause" Content="▶ Play" Style="{StaticResource OutlineButton}" Width="70" Click="BtnPlayPause_Click"/>
-                            <Button Name="BtnStop" Content="⏹ Stop" Style="{StaticResource OutlineButton}" Width="65" Margin="4,0,0,0" Click="BtnStop_Click"/>
-                            <Border Width="1" Background="#334155" Margin="8,2"/>
+                            <Button Name="BtnPlayPause" Content="▶ Play" Style="{StaticResource OutlineButton}" Width="65" Click="BtnPlayPause_Click"/>
+                            <Button Name="BtnStop" Content="⏹ Stop" Style="{StaticResource OutlineButton}" Width="60" Margin="4,0,0,0" Click="BtnStop_Click"/>
+                            <Border Width="1" Background="#334155" Margin="6,2"/>
+                            <Button Name="BtnStepBack" Content="◀ -0.1s" Style="{StaticResource OutlineButton}" Width="56" ToolTip="Step back 100ms" Click="BtnStepBack_Click"/>
+                            <Button Name="BtnStepForward" Content="+0.1s ▶" Style="{StaticResource OutlineButton}" Width="56" Margin="4,0,0,0" ToolTip="Step forward 100ms" Click="BtnStepForward_Click"/>
+                            <Border Width="1" Background="#334155" Margin="6,2"/>
                             <Button Name="BtnSetStart" Content="[ Set Start" Style="{StaticResource OutlineButton}" Background="#065F46" Foreground="#6EE7B7" Click="BtnSetStart_Click"/>
                             <Button Name="BtnSetEnd" Content="Set End ]" Style="{StaticResource OutlineButton}" Background="#065F46" Foreground="#6EE7B7" Margin="4,0,0,0" Click="BtnSetEnd_Click"/>
                         </StackPanel>
@@ -215,6 +246,17 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Frame Capture Card (ShareX Still Exporter) -->
+                    <Border Style="{StaticResource CardPanel}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="📸 Still Frame Extractor" FontSize="15" FontWeight="SemiBold" Foreground="#F8FAFC" Margin="0,0,0,4"/>
+                            <TextBlock Text="Extract full-resolution frame at current playhead position" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,10"/>
+
+                            <Button Name="BtnCaptureFrame" Content="📸 Copy Current Frame to Clipboard" Style="{StaticResource ActionButton}" Background="#0284C7" Margin="0,0,0,8" Click="BtnCaptureFrame_Click"/>
+                            <Button Name="BtnAnnotateFrame" Content="✏️ Open Frame in Annotator" Style="{StaticResource OutlineButton}" Click="BtnAnnotateFrame_Click"/>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Sped-Up MP4 Export Card -->
                     <Border Style="{StaticResource CardPanel}">
                         <StackPanel>
@@ -227,7 +269,7 @@
         </Grid>
 
         <!-- Bottom Status Bar -->
-        <Border Grid.Row="2" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="12,8" Margin="0,12,0,0">
+        <Border Grid.Row="3" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="12,8" Margin="0,12,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

@@ -22,10 +22,19 @@ namespace LinkSync.Desktop
         private bool _isUserSeeking = false;
         private bool _isPlaying = false;
         private string _lastExportedGif = string.Empty;
+        private readonly SyncServer? _server;
+        private bool _isPreviewMode;
 
-        public VideoSuiteWindow(string? videoPath = null)
+        public VideoSuiteWindow(string? videoPath = null, bool isPreviewMode = false, SyncServer? server = null)
         {
             InitializeComponent();
+            _isPreviewMode = isPreviewMode;
+            _server = server ?? MainWindow.Instance?.SyncServer;
+
+            if (_isPreviewMode)
+            {
+                PanelPreviewBar.Visibility = Visibility.Visible;
+            }
 
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
             _timer.Tick += Timer_Tick;
@@ -40,6 +49,111 @@ namespace LinkSync.Desktop
                 _timer.Stop();
                 Player.Close();
             };
+        }
+
+        private async void BtnSaveAndSyncPhone_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_videoPath) || !File.Exists(_videoPath)) return;
+            BtnSaveAndSyncPhone.IsEnabled = false;
+
+            string targetFile = _videoPath;
+            if (_startTime > TimeSpan.FromMilliseconds(500) || (_duration - _endTime) > TimeSpan.FromMilliseconds(500))
+            {
+                TxtStatus.Text = "Trimming video...";
+                string trimmedFile = Path.Combine(Path.GetDirectoryName(_videoPath)!, $"{Path.GetFileNameWithoutExtension(_videoPath)}_trimmed.mp4");
+                var cutDuration = _endTime - _startTime;
+                bool success = await FfmpegVideoService.LosslessTrimAsync(_videoPath, trimmedFile, _startTime, cutDuration);
+                if (success && File.Exists(trimmedFile))
+                {
+                    try { File.Delete(_videoPath); } catch { }
+                    targetFile = trimmedFile;
+                }
+            }
+
+            FfmpegVideoService.CopyFileToClipboard(targetFile);
+
+            MainWindow.Instance?.MediaItems.Insert(0, new MediaItemViewModel
+            {
+                FilePath = targetFile,
+                FileName = Path.GetFileName(targetFile),
+                TimestampText = DateTime.Now.ToString("MMM dd, HH:mm:ss")
+            });
+
+            if (_server != null)
+            {
+                TxtStatus.Text = "Syncing video to phone...";
+                try
+                {
+                    byte[] bytes = await File.ReadAllBytesAsync(targetFile);
+                    await _server.SendFileAsync(Path.GetFileName(targetFile), bytes, "video/mp4");
+                    TxtStatus.Text = "✓ Saved and synced to Galaxy A17!";
+                }
+                catch (Exception ex)
+                {
+                    TxtStatus.Text = $"Sync error: {ex.Message}";
+                }
+            }
+            else
+            {
+                TxtStatus.Text = "✓ Saved locally and copied to clipboard!";
+            }
+
+            PanelPreviewBar.Visibility = Visibility.Collapsed;
+            MessageBox.Show("Video saved to PC and synced to your Galaxy A17!", "LinkSync", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private async void BtnSaveLocalOnly_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_videoPath) || !File.Exists(_videoPath)) return;
+            BtnSaveLocalOnly.IsEnabled = false;
+
+            string targetFile = _videoPath;
+            if (_startTime > TimeSpan.FromMilliseconds(500) || (_duration - _endTime) > TimeSpan.FromMilliseconds(500))
+            {
+                string trimmedFile = Path.Combine(Path.GetDirectoryName(_videoPath)!, $"{Path.GetFileNameWithoutExtension(_videoPath)}_trimmed.mp4");
+                var cutDuration = _endTime - _startTime;
+                bool success = await FfmpegVideoService.LosslessTrimAsync(_videoPath, trimmedFile, _startTime, cutDuration);
+                if (success && File.Exists(trimmedFile))
+                {
+                    try { File.Delete(_videoPath); } catch { }
+                    targetFile = trimmedFile;
+                }
+            }
+
+            FfmpegVideoService.CopyFileToClipboard(targetFile);
+            MainWindow.Instance?.MediaItems.Insert(0, new MediaItemViewModel
+            {
+                FilePath = targetFile,
+                FileName = Path.GetFileName(targetFile),
+                TimestampText = DateTime.Now.ToString("MMM dd, HH:mm:ss")
+            });
+
+            PanelPreviewBar.Visibility = Visibility.Collapsed;
+            TxtStatus.Text = "✓ Video saved locally and copied to clipboard!";
+            MessageBox.Show("Video saved locally to your PC and copied to clipboard!", "LinkSync", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnDiscardRecording_Click(object sender, RoutedEventArgs e)
+        {
+            var res = MessageBox.Show(
+                "Are you sure you want to discard and permanently delete this recording?",
+                "Discard Recording",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (res == MessageBoxResult.Yes)
+            {
+                Player.Close();
+                try
+                {
+                    if (!string.IsNullOrEmpty(_videoPath) && File.Exists(_videoPath))
+                    {
+                        File.Delete(_videoPath);
+                    }
+                }
+                catch { }
+                Close();
+            }
         }
 
         public void LoadVideo(string path)
@@ -169,6 +283,28 @@ namespace LinkSync.Desktop
             TxtEndTime.Text = FormatTime(_endTime);
             TxtSelectedDuration.Text = $"Selected Duration: {(_endTime - _startTime).TotalSeconds:F2}s";
             TxtStatus.Text = $"Set Trim End: {FormatTime(_endTime)}";
+        }
+
+        private void BtnStepBack_Click(object sender, RoutedEventArgs e)
+        {
+            Player.Position = TimeSpan.FromMilliseconds(Math.Max(0, Player.Position.TotalMilliseconds - 100));
+            SliderTimeline.Value = Player.Position.TotalMilliseconds;
+            UpdateTimeDisplay();
+        }
+
+        private void BtnStepForward_Click(object sender, RoutedEventArgs e)
+        {
+            Player.Position = TimeSpan.FromMilliseconds(Math.Min(_duration.TotalMilliseconds, Player.Position.TotalMilliseconds + 100));
+            SliderTimeline.Value = Player.Position.TotalMilliseconds;
+            UpdateTimeDisplay();
+        }
+
+        private void BtnRecordNew_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Instance?.Dispatcher.Invoke(() =>
+            {
+                MainWindow.Instance.StartRegionScreenRecording();
+            });
         }
 
         private void BtnOpenVideo_Click(object sender, RoutedEventArgs e)
@@ -356,6 +492,62 @@ namespace LinkSync.Desktop
             else
             {
                 TxtStatus.Text = "❌ Speed adjustment failed.";
+            }
+        }
+
+        private async void BtnCaptureFrame_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_videoPath) || !File.Exists(_videoPath))
+            {
+                MessageBox.Show("Please load a video first.", "LinkSync", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string dir = Path.GetDirectoryName(_videoPath) ?? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            string baseName = Path.GetFileNameWithoutExtension(_videoPath);
+            string frameFile = Path.Combine(dir, $"{baseName}_frame_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+
+            SetBusy(true, "Extracting still frame with FFmpeg...");
+            bool ok = await FfmpegVideoService.ExtractFrameAsync(_videoPath, frameFile, Player.Position);
+            SetBusy(false);
+
+            if (ok && File.Exists(frameFile))
+            {
+                FfmpegVideoService.CopyFileToClipboard(frameFile);
+                TxtStatus.Text = $"📸 Frame copied to clipboard: {Path.GetFileName(frameFile)}";
+                MessageBox.Show($"High-resolution frame extracted and copied to Windows Clipboard!\n\nSaved to:\n{frameFile}", "LinkSync Frame Extractor", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                TxtStatus.Text = "❌ Frame extraction failed.";
+            }
+        }
+
+        private async void BtnAnnotateFrame_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_videoPath) || !File.Exists(_videoPath))
+            {
+                MessageBox.Show("Please load a video first.", "LinkSync", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string dir = Path.GetDirectoryName(_videoPath) ?? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            string baseName = Path.GetFileNameWithoutExtension(_videoPath);
+            string frameFile = Path.Combine(dir, $"{baseName}_frame_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+
+            SetBusy(true, "Extracting frame for annotation...");
+            bool ok = await FfmpegVideoService.ExtractFrameAsync(_videoPath, frameFile, Player.Position);
+            SetBusy(false);
+
+            if (ok && File.Exists(frameFile))
+            {
+                var annotator = new ImageAnnotatorWindow(frameFile);
+                annotator.Show();
+                annotator.Activate();
+            }
+            else
+            {
+                TxtStatus.Text = "❌ Frame extraction failed.";
             }
         }
 

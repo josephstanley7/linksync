@@ -32,13 +32,23 @@ namespace LinkSync.Desktop
         private Point _startPoint;
         private Point _currentPoint;
         private Rect _selectedRect;
+        private readonly bool _isRecordingMode;
 
         public event Action<Bitmap, SnipAction>? SnipCompleted;
+        public event Action<Rect>? RecordRegionRequested;
 
-        public ScreenSnippingWindow(Bitmap fullScreenBitmap)
+        public ScreenSnippingWindow(Bitmap fullScreenBitmap, bool isRecordingMode = false)
         {
             InitializeComponent();
             _fullScreenBitmap = fullScreenBitmap;
+            _isRecordingMode = isRecordingMode;
+
+            if (_isRecordingMode)
+            {
+                BtnRecordRegion.Content = "▶ Start Recording Region";
+                BtnRecordRegion.FontSize = 12;
+                BtnRecordRegion.Padding = new Thickness(12, 6, 12, 6);
+            }
 
             // Cover full virtual screen across all monitors
             Left = SystemParameters.VirtualScreenLeft;
@@ -185,10 +195,17 @@ namespace LinkSync.Desktop
                     return;
                 }
 
-                // Double click check: if rapid clicks, trigger instant CopyAndSync like ShareX
+                // Double click check: if rapid clicks, trigger instant action
                 if (e.ClickCount >= 2)
                 {
-                    ExecuteAction(SnipAction.CopyAndSync);
+                    if (_isRecordingMode)
+                    {
+                        TriggerRecordRegion();
+                    }
+                    else
+                    {
+                        ExecuteAction(SnipAction.CopyAndSync);
+                    }
                     return;
                 }
 
@@ -218,8 +235,33 @@ namespace LinkSync.Desktop
             }
             else if (e.Key == Key.Enter && _selectedRect.Width > 5)
             {
-                ExecuteAction(SnipAction.CopyAndSync);
+                if (_isRecordingMode)
+                {
+                    TriggerRecordRegion();
+                }
+                else
+                {
+                    ExecuteAction(SnipAction.CopyAndSync);
+                }
             }
+        }
+
+        private void TriggerRecordRegion()
+        {
+            if (_selectedRect.Width < 16 || _selectedRect.Height < 16) return;
+
+            int cropX = (int)Math.Max(0, Math.Round(_selectedRect.X * _scaleX));
+            int cropY = (int)Math.Max(0, Math.Round(_selectedRect.Y * _scaleY));
+            int cropW = (int)Math.Round(_selectedRect.Width * _scaleX);
+            int cropH = (int)Math.Round(_selectedRect.Height * _scaleY);
+
+            RecordRegionRequested?.Invoke(new Rect(cropX, cropY, cropW, cropH));
+            Close();
+        }
+
+        private void BtnRecordRegion_Click(object sender, RoutedEventArgs e)
+        {
+            TriggerRecordRegion();
         }
 
         private Bitmap? CropSelectedRegion()

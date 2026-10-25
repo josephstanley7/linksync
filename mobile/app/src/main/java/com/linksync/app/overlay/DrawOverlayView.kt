@@ -27,6 +27,9 @@ class DrawOverlayView @JvmOverloads constructor(
     var currentColor: Int = Color.parseColor("#EF4444") // Default vibrant Red
     var strokeThickness: Float = 10f
 
+    var windowManager: android.view.WindowManager? = null
+    var overlayLayoutParams: android.view.WindowManager.LayoutParams? = null
+
     private var isDrawingActive = false
     private var stepBadgeCounter = 1
 
@@ -65,8 +68,22 @@ class DrawOverlayView @JvmOverloads constructor(
 
     fun setDrawingActive(active: Boolean) {
         isDrawingActive = active
+        setTouchPassthrough(!active)
         visibility = if (shapes.isNotEmpty() || active) VISIBLE else GONE
         invalidate()
+    }
+
+    fun setTouchPassthrough(passthrough: Boolean) {
+        val wm = windowManager ?: return
+        val lp = overlayLayoutParams ?: return
+        if (passthrough) {
+            lp.flags = lp.flags or android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        } else {
+            lp.flags = lp.flags and android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        }
+        try {
+            wm.updateViewLayout(this, lp)
+        } catch (_: Exception) {}
     }
 
     fun undo() {

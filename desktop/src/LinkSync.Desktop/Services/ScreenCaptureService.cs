@@ -43,6 +43,9 @@ namespace LinkSync.Desktop.Services
         private readonly SyncServer _server;
         private readonly SystemTrayManager _trayManager;
         private readonly string _saveDirectory;
+        private readonly DesktopScreenRecorder _recorder;
+
+        public DesktopScreenRecorder Recorder => _recorder;
 
         public event Action<string, byte[]>? CaptureSaved;
 
@@ -52,6 +55,7 @@ namespace LinkSync.Desktop.Services
             _trayManager = trayManager;
             _saveDirectory = server.SaveDirectory;
             Directory.CreateDirectory(_saveDirectory);
+            _recorder = new DesktopScreenRecorder(server, trayManager);
         }
 
         public static Bitmap CaptureVirtualScreen()
@@ -69,19 +73,33 @@ namespace LinkSync.Desktop.Services
             return bmp;
         }
 
-        public void CaptureRegion()
+        public void CaptureRegion(bool isRecordingMode = false)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 var fullScreen = CaptureVirtualScreen();
-                var snipWindow = new ScreenSnippingWindow(fullScreen);
+                var snipWindow = new ScreenSnippingWindow(fullScreen, isRecordingMode);
                 snipWindow.SnipCompleted += (bitmap, action) =>
                 {
                     Task.Run(() => HandleSnipResultAsync(bitmap, action));
                 };
+                snipWindow.RecordRegionRequested += (rect) =>
+                {
+                    _recorder.StartRecording(rect);
+                };
                 snipWindow.Show();
                 snipWindow.Activate();
             });
+        }
+
+        public void StartScreenRecordingRegion()
+        {
+            CaptureRegion(isRecordingMode: true);
+        }
+
+        public void StartScreenRecordingFullScreen()
+        {
+            _recorder.StartRecording(null);
         }
 
         public void CaptureFullScreen()

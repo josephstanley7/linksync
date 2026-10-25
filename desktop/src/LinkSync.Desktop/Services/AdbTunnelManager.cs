@@ -132,6 +132,40 @@ namespace LinkSync.Desktop.Services
             return DevicePortStatus.NoDevice;
         }
 
+        public async Task<string?> GetActiveDeviceSerialAsync()
+        {
+            string adbPath = ResolveAdbPath();
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = adbPath,
+                    Arguments = "devices",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    string output = await proc.StandardOutput.ReadToEndAsync();
+                    await proc.WaitForExitAsync();
+                    var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines)
+                    {
+                        if (line.StartsWith("List of devices", StringComparison.OrdinalIgnoreCase)) continue;
+                        var parts = line.Split(new[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length >= 2 && parts[1].Equals("device", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return parts[0];
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
         public async Task<bool> EnsureReverseTunnelAsync()
         {
             if (!await _lock.WaitAsync(100)) return false;

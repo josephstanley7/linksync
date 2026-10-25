@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.os.SystemClock
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
@@ -23,31 +24,49 @@ class LinkSyncTileService : TileService() {
     }
 
     private var receiverRegistered = false
+    private var lastClickTime = 0L
 
     override fun onClick() {
         super.onClick()
+
+        // Debounce rapid taps from QS panel (ignore clicks within 1000ms)
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastClickTime < 1000L) {
+            return
+        }
+        lastClickTime = now
 
         if (!ScreenRecorderService.isRecording) {
             val promptIntent = Intent(this, ScreenCapturePromptActivity::class.java).apply {
                 addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
                         Intent.FLAG_ACTIVITY_NO_ANIMATION or
-                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
-                        Intent.FLAG_ACTIVITY_NO_HISTORY
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                 )
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                val pendingIntent = PendingIntent.getActivity(
-                    this,
-                    0,
-                    promptIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                startActivityAndCollapse(pendingIntent)
+
+            val launchAction = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val pendingIntent = PendingIntent.getActivity(
+                        this,
+                        1001,
+                        promptIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    startActivityAndCollapse(pendingIntent)
+                } else {
+                    @Suppress("DEPRECATION")
+                    startActivityAndCollapse(promptIntent)
+                }
+            }
+
+            if (isLocked) {
+                unlockAndRun(launchAction)
             } else {
-                @Suppress("DEPRECATION")
-                startActivityAndCollapse(promptIntent)
+                launchAction()
             }
+
             // Tile stays inactive until ScreenRecorderService actually starts capturing.
             refreshTile()
         } else {

@@ -28,11 +28,18 @@ namespace LinkSync.Desktop
         private Color _activeColor = Color.FromRgb(239, 68, 68);
         private double _activeThickness = 4.0;
         private int _stepBadgeCounter = 1;
+        private double _currentZoom = 1.0;
 
         private bool _isDrawing = false;
         private Point _startPoint;
         private readonly List<Point> _highlighterPoints = new();
         private Shape? _previewShape = null;
+
+        public ImageAnnotatorWindow()
+        {
+            InitializeComponent();
+            TryLoadFromClipboardOrEmpty();
+        }
 
         public ImageAnnotatorWindow(string imagePath)
         {
@@ -41,9 +48,50 @@ namespace LinkSync.Desktop
             LoadImage(imagePath);
         }
 
+        public ImageAnnotatorWindow(BitmapSource bitmapSource, string title = "Clipboard Screenshot")
+        {
+            InitializeComponent();
+            LoadBitmap(bitmapSource, title);
+        }
+
+        private void TryLoadFromClipboardOrEmpty()
+        {
+            try
+            {
+                if (Clipboard.ContainsImage())
+                {
+                    var img = Clipboard.GetImage();
+                    if (img != null)
+                    {
+                        LoadBitmap(img, "Pasted from Windows Clipboard");
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ImageAnnotator] Clipboard read warning: {ex.Message}");
+            }
+
+            ShowEmptyState();
+        }
+
+        private void ShowEmptyState()
+        {
+            EmptyStateBorder.Visibility = Visibility.Visible;
+            CardContainer.Visibility = Visibility.Collapsed;
+            TxtDimensions.Text = "-- × -- px";
+            TxtStatus.Text = "No screenshot loaded • Drop an image file, press Ctrl+V, or click Browse";
+            Title = "LinkSync Image Annotator (ShareX-Grade)";
+        }
+
         private void LoadImage(string path)
         {
-            if (!File.Exists(path)) return;
+            if (!File.Exists(path))
+            {
+                ShowEmptyState();
+                return;
+            }
 
             try
             {
@@ -54,21 +102,160 @@ namespace LinkSync.Desktop
                 bi.EndInit();
                 bi.Freeze();
 
-                var conv = new FormatConvertedBitmap(bi, PixelFormats.Bgra32, null, 0);
+                LoadBitmap(bi, Path.GetFileName(path));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load image: {ex.Message}", "LinkSync Annotator", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowEmptyState();
+            }
+        }
+
+        private void LoadBitmap(BitmapSource source, string displayName)
+        {
+            try
+            {
+                var conv = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
                 _baseBitmap = new WriteableBitmap(conv);
+                _bitmapUndoStack.Clear();
+                _annotations.Clear();
+                _annotationUndoStack.Clear();
+                _annotationRedoStack.Clear();
+                _stepBadgeCounter = 1;
 
                 ImgBase.Source = _baseBitmap;
                 AnnotCanvas.Width = _baseBitmap.PixelWidth;
                 AnnotCanvas.Height = _baseBitmap.PixelHeight;
 
+                EmptyStateBorder.Visibility = Visibility.Collapsed;
+                CardContainer.Visibility = Visibility.Visible;
+
                 TxtDimensions.Text = $"{_baseBitmap.PixelWidth} × {_baseBitmap.PixelHeight} px";
-                TxtStatus.Text = $"Loaded: {Path.GetFileName(path)}";
+                TxtStatus.Text = $"Loaded: {displayName}";
+                Title = $"LinkSync Image Annotator — {displayName}";
+
+                RedrawAnnotations();
+
+                // Auto-fit to viewport on first render
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(ZoomFit));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load image: {ex.Message}", "LinkSync", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error initializing canvas bitmap: {ex.Message}", "LinkSync Annotator", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowEmptyState();
             }
         }
+
+        #region Drag and Drop & File Browsing
+
+        private void Window_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) || e.Data.GetDataPresent(DataFormats.Bitmap))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+
+        private void Window_Drop(object sender, DragEventArgs e)
+        {
+            try
+            {
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    if (files != null && files.Length > 0)
+                    {
+                        string file = files[0];
+                        string ext = Path.GetExtension(file).ToLowerInvariant();
+                        if (ext is ".png" or ".jpg" or ".jpeg" or ".bmp" or ".webp")
+                        {
+                            _filePath = file;
+                            LoadImage(file);
+                        }
+                    }
+                }
+                else if (e.Data.GetDataPresent(DataFormats.Bitmap))
+                {
+                    var img = Clipboard.GetImage();
+                    if (img != null)
+                    {
+                        _filePath = string.Empty;
+                        LoadBitmap(img, "Dropped Image");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ImageAnnotator] Drop error: {ex.Message}");
+            }
+        }
+
+        private void BtnBrowseImage_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog
+            {
+                Filter = "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All Files (*.*)|*.*",
+                Title = "Open Screenshot or Image"
+            };
+
+            if (ofd.ShowDialog() == true)
+            {
+                _filePath = ofd.FileName;
+                LoadImage(ofd.FileName);
+            }
+        }
+
+        #endregion
+
+        #region Zoom Controls
+
+        private void WorkspaceScroll_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (e.Delta > 0) ZoomIn();
+                else ZoomOut();
+                e.Handled = true;
+            }
+        }
+
+        private void ApplyZoom(double newZoom)
+        {
+            _currentZoom = Math.Clamp(newZoom, 0.15, 4.0);
+            CanvasScale.ScaleX = _currentZoom;
+            CanvasScale.ScaleY = _currentZoom;
+            TxtZoom.Text = $"{Math.Round(_currentZoom * 100)}%";
+        }
+
+        private void ZoomIn() => ApplyZoom(_currentZoom * 1.15);
+        private void ZoomOut() => ApplyZoom(_currentZoom / 1.15);
+        private void ZoomReset() => ApplyZoom(1.0);
+
+        private void ZoomFit()
+        {
+            if (_baseBitmap == null || _baseBitmap.PixelWidth == 0 || _baseBitmap.PixelHeight == 0) return;
+            double availW = WorkspaceScroll.ActualWidth - 60;
+            double availH = WorkspaceScroll.ActualHeight - 60;
+            if (availW <= 100 || availH <= 100) return;
+
+            double scaleX = availW / _baseBitmap.PixelWidth;
+            double scaleY = availH / _baseBitmap.PixelHeight;
+            double fitScale = Math.Min(scaleX, scaleY);
+            if (fitScale > 1.0) fitScale = 1.0;
+            ApplyZoom(fitScale);
+        }
+
+        private void BtnZoomIn_Click(object sender, RoutedEventArgs e) => ZoomIn();
+        private void BtnZoomOut_Click(object sender, RoutedEventArgs e) => ZoomOut();
+        private void BtnZoom100_Click(object sender, RoutedEventArgs e) => ZoomReset();
+        private void BtnZoomFit_Click(object sender, RoutedEventArgs e) => ZoomFit();
+
+        #endregion
 
         #region Tool & Color Selection
 
@@ -93,17 +280,23 @@ namespace LinkSync.Desktop
             {
                 TxtStatus.Text = _currentTool switch
                 {
-                    AnnotationTool.Arrow => "Tool: Arrow • Drag from start to end",
-                    AnnotationTool.StepBadge => $"Tool: Step Badge • Click to drop badge #{_stepBadgeCounter}",
+                    AnnotationTool.Arrow => "Tool: Vector Arrow • Drag from tail to arrowhead",
+                    AnnotationTool.StepBadge => $"Tool: Step Badge • Click anywhere to drop badge #{_stepBadgeCounter}",
                     AnnotationTool.Rectangle => "Tool: Box • Drag to highlight region",
-                    AnnotationTool.Spotlight => "Tool: Spotlight • Drag to spotlight area (darkens background)",
-                    AnnotationTool.Pixelate => "Tool: Pixelate • Drag rectangle to obscure passwords/tokens",
-                    AnnotationTool.Blur => "Tool: Blur • Drag rectangle to blur sensitive information",
-                    AnnotationTool.Highlighter => "Tool: Highlighter • Drag across text",
-                    AnnotationTool.Text => "Tool: Text Callout • Click where you want to add text",
+                    AnnotationTool.Spotlight => "Tool: Spotlight • Drag box to spotlight area (darkens background)",
+                    AnnotationTool.Pixelate => "Tool: Pixelate Redaction • Drag rectangle to obscure passwords/tokens",
+                    AnnotationTool.Blur => "Tool: Blur Redaction • Drag rectangle to blur sensitive information",
+                    AnnotationTool.Highlighter => "Tool: Highlighter • Drag across text or UI elements",
+                    AnnotationTool.Text => "Tool: Text Callout • Click where you want to add text callout",
                     _ => "Select a tool"
                 };
             }
+        }
+
+        private void BtnResetStep_Click(object sender, RoutedEventArgs e)
+        {
+            _stepBadgeCounter = 1;
+            TxtStatus.Text = "Step Badge counter reset to #1";
         }
 
         private void Color_Checked(object sender, RoutedEventArgs e)
@@ -146,7 +339,7 @@ namespace LinkSync.Desktop
                     }
                     BezelScreenSlot.Content = CanvasHost;
                     BezelBorder.Visibility = Visibility.Visible;
-                    TxtStatus.Text = "Samsung Galaxy A Bezel Mockup: ENABLED";
+                    TxtStatus.Text = "Samsung Galaxy Bezel Mockup: ENABLED (Chassis, Punch-hole, Drop Shadow)";
                 }
                 else
                 {
@@ -171,6 +364,7 @@ namespace LinkSync.Desktop
 
         private void AnnotCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (_baseBitmap == null) return;
             if (e.LeftButton != MouseButtonState.Pressed) return;
 
             Point p = e.GetPosition(AnnotCanvas);
@@ -192,7 +386,7 @@ namespace LinkSync.Desktop
                 _isDrawing = false;
                 AnnotCanvas.ReleaseMouseCapture();
                 RedrawAnnotations();
-                TxtStatus.Text = $"Placed Step Badge #{badge.Number} • Next is #{_stepBadgeCounter}";
+                TxtStatus.Text = $"Placed Step Badge #{badge.Number} • Next badge will be #{_stepBadgeCounter}";
                 return;
             }
 
@@ -447,6 +641,7 @@ namespace LinkSync.Desktop
         private void RedrawAnnotations()
         {
             AnnotCanvas.Children.Clear();
+            if (_baseBitmap == null) return;
 
             var dv = new DrawingVisual();
             using (var dc = dv.RenderOpen())
@@ -514,7 +709,7 @@ namespace LinkSync.Desktop
                 _annotations.Clear();
                 _annotations.AddRange(prev);
                 RedrawAnnotations();
-                TxtStatus.Text = "Undid last annotation";
+                TxtStatus.Text = "Undid last vector annotation";
                 return;
             }
 
@@ -546,7 +741,7 @@ namespace LinkSync.Desktop
             _annotations.Clear();
             _stepBadgeCounter = 1;
             RedrawAnnotations();
-            TxtStatus.Text = "Cleared all annotations (Badge counter reset to 1)";
+            TxtStatus.Text = "Cleared all annotations (Badge counter reset to #1)";
         }
 
         #endregion
@@ -555,6 +750,8 @@ namespace LinkSync.Desktop
 
         private RenderTargetBitmap GenerateFullComposite()
         {
+            if (_baseBitmap == null) throw new InvalidOperationException("No image is currently loaded.");
+
             int w = _baseBitmap.PixelWidth;
             int h = _baseBitmap.PixelHeight;
 
@@ -614,8 +811,8 @@ namespace LinkSync.Desktop
             {
                 var composited = GenerateFullComposite();
                 Clipboard.SetImage(composited);
-                TxtStatus.Text = "✅ Annotated image copied to Windows Clipboard! Paste with Ctrl+V.";
-                MessageBox.Show("Annotated screenshot copied to Windows Clipboard!\nYou can now paste it directly into Telegram, GitHub, Slack, or Word.", "LinkSync Annotator", MessageBoxButton.OK, MessageBoxImage.Information);
+                TxtStatus.Text = "✅ Annotated screenshot copied to Windows Clipboard! Paste with Ctrl+V.";
+                MessageBox.Show("Annotated screenshot copied to Windows Clipboard!\nYou can now paste it directly into Telegram, GitHub, Slack, or Paint.", "LinkSync Annotator", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -690,6 +887,50 @@ namespace LinkSync.Desktop
             {
                 BtnSave_Click(sender, e);
                 e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.V)
+            {
+                // Paste from clipboard
+                if (Clipboard.ContainsImage())
+                {
+                    var img = Clipboard.GetImage();
+                    if (img != null)
+                    {
+                        _filePath = string.Empty;
+                        LoadBitmap(img, "Pasted from Clipboard");
+                        e.Handled = true;
+                    }
+                }
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.OemPlus || e.Key == Key.Add))
+            {
+                ZoomIn();
+                e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.OemMinus || e.Key == Key.Subtract))
+            {
+                ZoomOut();
+                e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.D0 || e.Key == Key.NumPad0))
+            {
+                ZoomReset();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                if (_isDrawing)
+                {
+                    _isDrawing = false;
+                    AnnotCanvas.ReleaseMouseCapture();
+                    if (_previewShape != null)
+                    {
+                        AnnotCanvas.Children.Remove(_previewShape);
+                        _previewShape = null;
+                    }
+                    _highlighterPoints.Clear();
+                    e.Handled = true;
+                }
             }
         }
 

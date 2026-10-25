@@ -44,6 +44,7 @@
             <StackPanel Orientation="Horizontal">
                 <Button Name="BtnCopySync" Content="✓ Copy &amp; Sync" Background="#10B981" Foreground="White" FontWeight="Bold" FontSize="11" Padding="8,4" Margin="0,0,4,0" Cursor="Hand" Click="BtnCopySync_Click"/>
                 <Button Name="BtnAnnotate" Content="✏️ Annotate" Background="#2563EB" Foreground="White" FontWeight="Bold" FontSize="11" Padding="8,4" Margin="0,0,4,0" Cursor="Hand" Click="BtnAnnotate_Click"/>
+                <Button Name="BtnRecordRegion" Content="🎥 Record Region" Background="#EF4444" Foreground="White" FontWeight="Bold" FontSize="11" Padding="8,4" Margin="0,0,4,0" Cursor="Hand" Click="BtnRecordRegion_Click"/>
                 <Button Name="BtnSave" Content="💾 Save" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="11" Padding="8,4" Margin="0,0,4,0" Cursor="Hand" Click="BtnSave_Click"/>
                 <Button Name="BtnCancel" Content="✕" Background="#334155" Foreground="#94A3B8" FontWeight="Bold" FontSize="11" Padding="6,4" Cursor="Hand" Click="BtnCancel_Click"/>
             </StackPanel>
