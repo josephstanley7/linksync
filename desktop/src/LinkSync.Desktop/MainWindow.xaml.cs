@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using LinkSync.Core;
 using LinkSync.Desktop.Services;
 
@@ -46,7 +47,15 @@ namespace LinkSync.Desktop
         {
             Instance = this;
             App.LogStartup("MainWindow ctor entered");
-            InitializeComponent();
+            try
+            {
+                InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                App.LogStartup($"InitializeComponent EXCEPTION: {ex.GetType().Name}: {ex.Message} -> {ex.InnerException?.Message}");
+                throw;
+            }
             App.LogStartup("InitializeComponent finished");
 
             LstMedia.ItemsSource = MediaItems;
@@ -59,6 +68,10 @@ namespace LinkSync.Desktop
             _server.DeviceDisconnected += OnDeviceDisconnected;
             _server.ClipboardReceived += OnClipboardReceived;
             _server.MediaReceived += OnMediaReceived;
+            _server.ContactsReceived += OnContactsReceived;
+            _server.SmsListReceived += OnSmsListReceived;
+            _server.SmsReceived += OnSmsReceived;
+            _server.CallStateChanged += OnCallStateChanged;
 
             _clipboardWatcher = new Win32ClipboardWatcher();
             _clipboardWatcher.ClipboardTextChanged += OnLocalClipboardChanged;
@@ -354,6 +367,9 @@ namespace LinkSync.Desktop
                 DotSidebarStatus.Fill = new SolidColorBrush(Color.FromRgb(16, 185, 129));
                 TxtSidebarBattery.Text = "Connected";
                 TxtSidebarNet.Text = "Wi-Fi / USB";
+
+                _ = _server.RequestContactsAsync();
+                _ = _server.RequestSmsListAsync();
             });
         }
 
@@ -733,11 +749,14 @@ namespace LinkSync.Desktop
             }
         }
 
-        public enum NavTab { Overview, Photos, Clipboard, Video, Annotator, Mirror, Settings }
+        public enum NavTab { Overview, Messages, Calls, Contacts, Photos, Clipboard, Video, Annotator, Mirror, Settings }
 
         private void SwitchTab(NavTab tab)
         {
             ViewOverview.Visibility = tab == NavTab.Overview ? Visibility.Visible : Visibility.Collapsed;
+            ViewMessages.Visibility = tab == NavTab.Messages ? Visibility.Visible : Visibility.Collapsed;
+            ViewCalls.Visibility = tab == NavTab.Calls ? Visibility.Visible : Visibility.Collapsed;
+            ViewContacts.Visibility = tab == NavTab.Contacts ? Visibility.Visible : Visibility.Collapsed;
             ViewPhotos.Visibility = tab == NavTab.Photos ? Visibility.Visible : Visibility.Collapsed;
             ViewClipboard.Visibility = tab == NavTab.Clipboard ? Visibility.Visible : Visibility.Collapsed;
             ViewVideo.Visibility = tab == NavTab.Video ? Visibility.Visible : Visibility.Collapsed;
@@ -746,6 +765,9 @@ namespace LinkSync.Desktop
             ViewSettings.Visibility = tab == NavTab.Settings ? Visibility.Visible : Visibility.Collapsed;
 
             ResetNavButton(BtnNavOverview, tab == NavTab.Overview);
+            ResetNavButton(BtnNavMessages, tab == NavTab.Messages);
+            ResetNavButton(BtnNavCalls, tab == NavTab.Calls);
+            ResetNavButton(BtnNavContacts, tab == NavTab.Contacts);
             ResetNavButton(BtnNavPhotos, tab == NavTab.Photos);
             ResetNavButton(BtnNavClipboard, tab == NavTab.Clipboard);
             ResetNavButton(BtnNavVideo, tab == NavTab.Video);
@@ -756,6 +778,9 @@ namespace LinkSync.Desktop
             TxtPageTitle.Text = tab switch
             {
                 NavTab.Overview => "Overview & Hardware Continuity",
+                NavTab.Messages => "SMS & Message Threads",
+                NavTab.Calls => "Phone Calls & Digital Dialer",
+                NavTab.Contacts => "Phone Contacts Directory",
                 NavTab.Photos => "Photos & Synced Screenshots",
                 NavTab.Clipboard => "Universal Clipboard Stream",
                 NavTab.Video => "Video Suite & Animated GIF Maker",
@@ -768,6 +793,9 @@ namespace LinkSync.Desktop
             TxtHeaderSub.Text = tab switch
             {
                 NavTab.Overview => "Direct peer-to-peer connection • QuickSync acceleration enabled",
+                NavTab.Messages => "Read, compose, and send text messages through your Galaxy A17 SIM",
+                NavTab.Calls => "Place calls, view active call status, and hang up remotely",
+                NavTab.Contacts => "Synced phonebook with instant contact search and 1-click call/text",
                 NavTab.Photos => "Double-click item to edit in Image Annotator or Video Suite",
                 NavTab.Clipboard => "Two-way clipboard stream with instant local auto-paste",
                 NavTab.Video => "Lossless keyframe video trimmer and Lanczos animated GIF creator",
@@ -776,6 +804,15 @@ namespace LinkSync.Desktop
                 NavTab.Settings => "Storage directories, Windows startup, and hardware decode configuration",
                 _ => "HP EliteBook Folio 9470M Node"
             };
+
+            if (tab == NavTab.Messages && _cachedSmsMessages.Count == 0)
+            {
+                _ = _server.RequestSmsListAsync();
+            }
+            if (tab == NavTab.Contacts && _cachedContacts.Count == 0)
+            {
+                _ = _server.RequestContactsAsync();
+            }
         }
 
         private void ResetNavButton(Button btn, bool isActive)
@@ -786,6 +823,9 @@ namespace LinkSync.Desktop
         }
 
         private void BtnNavOverview_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Overview);
+        private void BtnNavMessages_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Messages);
+        private void BtnNavCalls_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Calls);
+        private void BtnNavContacts_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Contacts);
         private void BtnNavPhotos_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Photos);
         private void BtnNavClipboard_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Clipboard);
         private void BtnNavVideo_Click(object sender, RoutedEventArgs e) => SwitchTab(NavTab.Video);
@@ -949,6 +989,664 @@ namespace LinkSync.Desktop
                 }
             }
         }
+
+        // ========================================================
+        // GROUP 9: COMMUNICATION HUB (SMS, CALLS, CONTACTS & OTP)
+        // ========================================================
+        private readonly List<ContactItem> _cachedContacts = new();
+        private readonly List<SmsMessageItem> _cachedSmsMessages = new();
+        private readonly List<SmsThreadViewModel> _cachedThreads = new();
+        private SmsThreadViewModel? _activeThread;
+        private DispatcherTimer? _callDurationTimer;
+        private DateTime _callStartTime;
+
+        private void OnContactsReceived(List<ContactItem> contacts)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _cachedContacts.Clear();
+                _cachedContacts.AddRange(contacts);
+                TxtContactsCount.Text = $"{contacts.Count} Contacts";
+                RenderContactsList(_cachedContacts);
+                RenderQuickDialList(_cachedContacts);
+
+                if (_cachedSmsMessages.Count > 0)
+                {
+                    RebuildSmsThreads();
+                }
+            });
+        }
+
+        private void OnSmsListReceived(List<SmsMessageItem> messages)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _cachedSmsMessages.Clear();
+                _cachedSmsMessages.AddRange(messages);
+                RebuildSmsThreads();
+            });
+        }
+
+        private void OnSmsReceived(IncomingSmsNotification sms)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                // Feature 43: 1-Click Copy Verification Codes (2FA OTP Toast)
+                if (!string.IsNullOrWhiteSpace(sms.OtpCode))
+                {
+                    try
+                    {
+                        // 1. Auto-copy to clipboard immediately for instant Ctrl + V
+                        Clipboard.SetDataObject(sms.OtpCode, true);
+                    }
+                    catch { }
+
+                    // 2. Windows System Tray Balloon Tip
+                    _trayManager.ShowBalloon(
+                        "🔑 Verification Code Received",
+                        $"Code: {sms.OtpCode} (Copied to clipboard)\n{sms.Address}: {sms.Body}"
+                    );
+
+                    // 3. Interactive Floating Toast with 1-Click Button
+                    try
+                    {
+                        var toast = new Views.OtpToastWindow(sms.OtpCode, sms.Address, sms.Body);
+                        toast.Show();
+                    }
+                    catch { }
+                }
+
+                // If currently viewing active thread with this sender, display live bubble
+                if (_activeThread != null && IsMatchingAddress(_activeThread.Address, sms.Address))
+                {
+                    var msg = new SmsMessageItem
+                    {
+                        Address = sms.Address,
+                        Body = sms.Body,
+                        IsIncoming = true,
+                        Timestamp = sms.Timestamp > 0 ? sms.Timestamp : DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Read = true
+                    };
+                    _activeThread.Messages.Add(msg);
+                    AppendMessageBubble(msg);
+                    ScrollSmsMessages.ScrollToEnd();
+                }
+
+                // Refresh thread list from mobile node
+                _ = _server.RequestSmsListAsync();
+            });
+        }
+
+        private void OnCallStateChanged(CallStateNotification call)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (call.State == "RINGING" || call.State == "OFFHOOK")
+                {
+                    CardActiveCall.Visibility = Visibility.Visible;
+                    TxtActiveCallNumber.Text = string.IsNullOrWhiteSpace(call.Number)
+                        ? (string.IsNullOrWhiteSpace(TxtDialNumber.Text) ? "Calling on Galaxy A17..." : TxtDialNumber.Text)
+                        : call.Number;
+                    TxtActiveCallState.Text = call.State == "RINGING" ? "Ringing..." : "Connected / In-Call";
+
+                    if (_callDurationTimer == null)
+                    {
+                        _callStartTime = DateTime.UtcNow;
+                        _callDurationTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                        _callDurationTimer.Tick += (s, e) =>
+                        {
+                            var elapsed = DateTime.UtcNow - _callStartTime;
+                            TxtActiveCallTimer.Text = elapsed.ToString(@"mm\:ss");
+                        };
+                        _callDurationTimer.Start();
+                    }
+                }
+                else // IDLE / Call Ended
+                {
+                    if (_callDurationTimer != null)
+                    {
+                        _callDurationTimer.Stop();
+                        _callDurationTimer = null;
+                    }
+                    CardActiveCall.Visibility = Visibility.Collapsed;
+                    TxtActiveCallTimer.Text = "00:00";
+                }
+            });
+        }
+
+        private void RenderContactsList(IEnumerable<ContactItem> contacts)
+        {
+            LstContacts.Items.Clear();
+            foreach (var c in contacts)
+            {
+                var card = CreateContactCard(c);
+                LstContacts.Items.Add(card);
+            }
+        }
+
+        private FrameworkElement CreateContactCard(ContactItem c)
+        {
+            var grid = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            // Avatar with initials
+            var avatarBorder = new Border
+            {
+                Width = 36,
+                Height = 36,
+                CornerRadius = new CornerRadius(18),
+                Background = new SolidColorBrush(Color.FromRgb(30, 41, 59)),
+                BorderBrush = (Brush)FindResource("BrushAccent"),
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(0, 0, 12, 0)
+            };
+            var txtInitials = new TextBlock
+            {
+                Text = GetInitials(c.Name),
+                FontSize = 13,
+                FontWeight = FontWeights.Bold,
+                Foreground = (Brush)FindResource("BrushAccentLight"),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            avatarBorder.Child = txtInitials;
+            Grid.SetColumn(avatarBorder, 0);
+            grid.Children.Add(avatarBorder);
+
+            // Contact Name & Number
+            var detailsPanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            var namePanel = new StackPanel { Orientation = Orientation.Horizontal };
+            var txtName = new TextBlock
+            {
+                Text = c.Name,
+                FontSize = 13,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("BrushTextPrimary")
+            };
+            namePanel.Children.Add(txtName);
+            if (c.Starred)
+            {
+                var starBadge = new TextBlock
+                {
+                    Text = " ★",
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(Color.FromRgb(245, 158, 11)),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                namePanel.Children.Add(starBadge);
+            }
+            detailsPanel.Children.Add(namePanel);
+
+            var txtNumber = new TextBlock
+            {
+                Text = c.Number,
+                FontSize = 11,
+                Foreground = (Brush)FindResource("BrushTextMuted"),
+                Margin = new Thickness(0, 2, 0, 0)
+            };
+            detailsPanel.Children.Add(txtNumber);
+            Grid.SetColumn(detailsPanel, 1);
+            grid.Children.Add(detailsPanel);
+
+            // Action Buttons: Call & SMS
+            var actionsPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+            
+            var btnCall = new Button
+            {
+                Style = (Style)FindResource("SecondaryButton"),
+                Height = 30,
+                Padding = new Thickness(8, 2, 8, 2),
+                Margin = new Thickness(0, 0, 6, 0),
+                ToolTip = "Call this contact"
+            };
+            var callSp = new StackPanel { Orientation = Orientation.Horizontal };
+            callSp.Children.Add(new TextBlock { Text = "\uE717", FontFamily = (FontFamily)FindResource("FontIcons"), FontSize = 12, Foreground = (Brush)FindResource("BrushSuccess"), Margin = new Thickness(0, 0, 4, 0) });
+            callSp.Children.Add(new TextBlock { Text = "Call", FontSize = 11, FontWeight = FontWeights.SemiBold });
+            btnCall.Content = callSp;
+            btnCall.Click += (s, e) =>
+            {
+                TxtDialNumber.Text = c.Number;
+                SwitchTab(NavTab.Calls);
+                _ = _server.DialCallAsync(c.Number);
+            };
+            actionsPanel.Children.Add(btnCall);
+
+            var btnSms = new Button
+            {
+                Style = (Style)FindResource("SecondaryButton"),
+                Height = 30,
+                Padding = new Thickness(8, 2, 8, 2),
+                ToolTip = "Send text message"
+            };
+            var smsSp = new StackPanel { Orientation = Orientation.Horizontal };
+            smsSp.Children.Add(new TextBlock { Text = "\uE8BD", FontFamily = (FontFamily)FindResource("FontIcons"), FontSize = 12, Foreground = (Brush)FindResource("BrushAccentLight"), Margin = new Thickness(0, 0, 4, 0) });
+            smsSp.Children.Add(new TextBlock { Text = "SMS", FontSize = 11, FontWeight = FontWeights.SemiBold });
+            btnSms.Content = smsSp;
+            btnSms.Click += (s, e) =>
+            {
+                SelectOrCreateThread(c.Number, c.Name);
+                SwitchTab(NavTab.Messages);
+            };
+            actionsPanel.Children.Add(btnSms);
+
+            Grid.SetColumn(actionsPanel, 2);
+            grid.Children.Add(actionsPanel);
+
+            return grid;
+        }
+
+        private void RenderQuickDialList(IEnumerable<ContactItem> contacts)
+        {
+            LstQuickDial.Items.Clear();
+            var favorites = contacts.Where(c => c.Starred).Concat(contacts.Where(c => !c.Starred)).Take(12);
+            foreach (var c in favorites)
+            {
+                var card = CreateContactCard(c);
+                LstQuickDial.Items.Add(card);
+            }
+        }
+
+        private void RebuildSmsThreads()
+        {
+            _cachedThreads.Clear();
+            var grouped = _cachedSmsMessages.GroupBy(m => NormalizeNumber(m.Address));
+
+            foreach (var group in grouped)
+            {
+                var sorted = group.OrderBy(m => m.Timestamp).ToList();
+                var latest = sorted.Last();
+                var cleanAddress = latest.Address;
+                var matchedContact = _cachedContacts.FirstOrDefault(c => IsMatchingAddress(c.Number, cleanAddress));
+                var displayName = matchedContact?.Name ?? cleanAddress;
+
+                var thread = new SmsThreadViewModel
+                {
+                    ThreadId = latest.ThreadId,
+                    Address = cleanAddress,
+                    DisplayName = displayName,
+                    Snippet = latest.Body,
+                    TimestampText = FormatSmsDate(latest.Timestamp),
+                    Initials = GetInitials(displayName),
+                    HasUnread = sorted.Any(m => m.IsIncoming && !m.Read),
+                    Messages = sorted
+                };
+                _cachedThreads.Add(thread);
+            }
+
+            RenderSmsThreads(_cachedThreads);
+        }
+
+        private void RenderSmsThreads(IEnumerable<SmsThreadViewModel> threads)
+        {
+            LstSmsThreads.Items.Clear();
+            foreach (var th in threads)
+            {
+                var item = CreateSmsThreadItem(th);
+                LstSmsThreads.Items.Add(item);
+            }
+        }
+
+        private FrameworkElement CreateSmsThreadItem(SmsThreadViewModel th)
+        {
+            var grid = new Grid { Margin = new Thickness(0, 2, 0, 2), Tag = th };
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            // Avatar
+            var avatarBorder = new Border
+            {
+                Width = 36,
+                Height = 36,
+                CornerRadius = new CornerRadius(18),
+                Background = new SolidColorBrush(Color.FromRgb(30, 41, 59)),
+                BorderBrush = (Brush)FindResource("BrushAccent"),
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+            var txtInitials = new TextBlock
+            {
+                Text = th.Initials,
+                FontSize = 13,
+                FontWeight = FontWeights.Bold,
+                Foreground = (Brush)FindResource("BrushAccentLight"),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            avatarBorder.Child = txtInitials;
+            Grid.SetColumn(avatarBorder, 0);
+            grid.Children.Add(avatarBorder);
+
+            // Name & snippet
+            var contentSp = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            var txtName = new TextBlock
+            {
+                Text = th.DisplayName,
+                FontSize = 13,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("BrushTextPrimary"),
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+            contentSp.Children.Add(txtName);
+
+            var txtSnippet = new TextBlock
+            {
+                Text = th.Snippet,
+                FontSize = 11,
+                Foreground = (Brush)FindResource("BrushTextMuted"),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Margin = new Thickness(0, 2, 0, 0),
+                MaxHeight = 16
+            };
+            contentSp.Children.Add(txtSnippet);
+            Grid.SetColumn(contentSp, 1);
+            grid.Children.Add(contentSp);
+
+            // Timestamp
+            var txtTime = new TextBlock
+            {
+                Text = th.TimestampText,
+                FontSize = 10,
+                Foreground = new SolidColorBrush(Color.FromRgb(100, 116, 139)),
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(4, 0, 0, 0)
+            };
+            Grid.SetColumn(txtTime, 2);
+            grid.Children.Add(txtTime);
+
+            return grid;
+        }
+
+        private void LstSmsThreads_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LstSmsThreads.SelectedItem is FrameworkElement fe && fe.Tag is SmsThreadViewModel th)
+            {
+                SetActiveThread(th);
+            }
+        }
+
+        private void SetActiveThread(SmsThreadViewModel th)
+        {
+            _activeThread = th;
+            TxtActiveThreadName.Text = th.DisplayName;
+            TxtActiveThreadNumber.Text = th.Address;
+            TxtActiveAvatar.Text = th.Initials;
+
+            RenderActiveThreadMessages();
+        }
+
+        private void SelectOrCreateThread(string number, string name)
+        {
+            var existing = _cachedThreads.FirstOrDefault(t => IsMatchingAddress(t.Address, number));
+            if (existing != null)
+            {
+                SetActiveThread(existing);
+            }
+            else
+            {
+                var newThread = new SmsThreadViewModel
+                {
+                    Address = number,
+                    DisplayName = name,
+                    Initials = GetInitials(name),
+                    TimestampText = "Now",
+                    Snippet = "Start a new conversation",
+                    Messages = new List<SmsMessageItem>()
+                };
+                _cachedThreads.Insert(0, newThread);
+                RenderSmsThreads(_cachedThreads);
+                SetActiveThread(newThread);
+            }
+        }
+
+        private void RenderActiveThreadMessages()
+        {
+            PnlSmsMessages.Children.Clear();
+            if (_activeThread == null) return;
+
+            foreach (var msg in _activeThread.Messages.OrderBy(m => m.Timestamp))
+            {
+                AppendMessageBubble(msg);
+            }
+            ScrollSmsMessages.ScrollToEnd();
+        }
+
+        private void AppendMessageBubble(SmsMessageItem msg)
+        {
+            var container = new Border
+            {
+                Margin = msg.IsIncoming ? new Thickness(0, 3, 50, 3) : new Thickness(50, 3, 0, 3),
+                HorizontalAlignment = msg.IsIncoming ? HorizontalAlignment.Left : HorizontalAlignment.Right
+            };
+
+            var bubbleBorder = new Border
+            {
+                Background = msg.IsIncoming
+                    ? new SolidColorBrush(Color.FromRgb(30, 41, 59))  // Slate
+                    : (Brush)FindResource("BrushAccent"),              // Cobalt Accent
+                BorderBrush = msg.IsIncoming ? (Brush)FindResource("BrushCardBorder") : Brushes.Transparent,
+                BorderThickness = new Thickness(1),
+                CornerRadius = msg.IsIncoming ? new CornerRadius(12, 12, 12, 2) : new CornerRadius(12, 12, 2, 12),
+                Padding = new Thickness(12, 8, 12, 8),
+                MaxWidth = 480
+            };
+
+            var sp = new StackPanel();
+            var txtBody = new TextBlock
+            {
+                Text = msg.Body,
+                FontSize = 12,
+                Foreground = Brushes.White,
+                TextWrapping = TextWrapping.Wrap,
+                LineHeight = 17
+            };
+            sp.Children.Add(txtBody);
+
+            var txtTime = new TextBlock
+            {
+                Text = DateTimeOffset.FromUnixTimeMilliseconds(msg.Timestamp).LocalDateTime.ToString("h:mm tt"),
+                FontSize = 9,
+                Foreground = msg.IsIncoming ? new SolidColorBrush(Color.FromRgb(148, 163, 184)) : new SolidColorBrush(Color.FromRgb(191, 219, 254)),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Thickness(0, 4, 0, 0)
+            };
+            sp.Children.Add(txtTime);
+
+            bubbleBorder.Child = sp;
+            container.Child = bubbleBorder;
+            PnlSmsMessages.Children.Add(container);
+        }
+
+        private void BtnSendSms_Click(object sender, RoutedEventArgs e) => ExecuteSendSms();
+
+        private void TxtSmsInput_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && !Keyboard.IsKeyDown(Key.LeftShift))
+            {
+                e.Handled = true;
+                ExecuteSendSms();
+            }
+        }
+
+        private void ExecuteSendSms()
+        {
+            string body = TxtSmsInput.Text?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(body)) return;
+
+            string targetNumber = _activeThread?.Address ?? TxtActiveThreadNumber.Text;
+            if (string.IsNullOrWhiteSpace(targetNumber) || targetNumber == "Direct SMS via Galaxy A17")
+            {
+                MessageBox.Show("Please select or specify a contact phone number first.", "LinkSync SMS", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            TxtSmsInput.Text = string.Empty;
+
+            var optimisticMsg = new SmsMessageItem
+            {
+                Address = targetNumber,
+                Body = body,
+                IsIncoming = false,
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Read = true
+            };
+
+            _activeThread?.Messages.Add(optimisticMsg);
+            AppendMessageBubble(optimisticMsg);
+            ScrollSmsMessages.ScrollToEnd();
+
+            _ = _server.SendSmsAsync(targetNumber, body);
+        }
+
+        private void BtnCallActiveThread_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeThread != null && !string.IsNullOrWhiteSpace(_activeThread.Address))
+            {
+                TxtDialNumber.Text = _activeThread.Address;
+                SwitchTab(NavTab.Calls);
+                _ = _server.DialCallAsync(_activeThread.Address);
+            }
+        }
+
+        private void BtnRefreshSms_Click(object sender, RoutedEventArgs e)
+        {
+            _ = _server.RequestSmsListAsync();
+        }
+
+        private void BtnRefreshContacts_Click(object sender, RoutedEventArgs e)
+        {
+            _ = _server.RequestContactsAsync();
+        }
+
+        private void TxtContactSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = TxtContactSearch.Text?.Trim().ToLowerInvariant() ?? "";
+            if (string.IsNullOrEmpty(query))
+            {
+                RenderContactsList(_cachedContacts);
+            }
+            else
+            {
+                var filtered = _cachedContacts.Where(c =>
+                    c.Name.ToLowerInvariant().Contains(query) ||
+                    c.Number.Contains(query));
+                RenderContactsList(filtered);
+            }
+        }
+
+        private void TxtSmsSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string query = TxtSmsSearch.Text?.Trim().ToLowerInvariant() ?? "";
+            if (string.IsNullOrEmpty(query))
+            {
+                RenderSmsThreads(_cachedThreads);
+            }
+            else
+            {
+                var filtered = _cachedThreads.Where(t =>
+                    t.DisplayName.ToLowerInvariant().Contains(query) ||
+                    t.Address.Contains(query) ||
+                    t.Snippet.ToLowerInvariant().Contains(query));
+                RenderSmsThreads(filtered);
+            }
+        }
+
+        // ========================================================
+        // DIGITAL KEYPAD & CALL CONTROLS
+        // ========================================================
+        private void KeypadDigit_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string digit)
+            {
+                TxtDialNumber.Text += digit;
+            }
+        }
+
+        private void BtnDialBackspace_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(TxtDialNumber.Text))
+            {
+                TxtDialNumber.Text = TxtDialNumber.Text.Substring(0, TxtDialNumber.Text.Length - 1);
+            }
+        }
+
+        private void TxtDialNumber_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                BtnPlaceCall_Click(sender, e);
+            }
+        }
+
+        private void BtnPlaceCall_Click(object sender, RoutedEventArgs e)
+        {
+            string number = TxtDialNumber.Text?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(number))
+            {
+                MessageBox.Show("Please enter a phone number to dial.", "LinkSync Dialer", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            CardActiveCall.Visibility = Visibility.Visible;
+            TxtActiveCallNumber.Text = number;
+            TxtActiveCallState.Text = "Dialing on Galaxy A17...";
+            _ = _server.DialCallAsync(number);
+        }
+
+        private void BtnEndCall_Click(object sender, RoutedEventArgs e)
+        {
+            _ = _server.EndCallAsync();
+            CardActiveCall.Visibility = Visibility.Collapsed;
+            _callDurationTimer?.Stop();
+            _callDurationTimer = null;
+            TxtActiveCallTimer.Text = "00:00";
+        }
+
+        // ========================================================
+        // UTILITY STRING HELPERS
+        // ========================================================
+        private static string GetInitials(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return "#";
+            var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 1) return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpperInvariant();
+            return (parts[0][0].ToString() + parts[^1][0].ToString()).ToUpperInvariant();
+        }
+
+        private static string NormalizeNumber(string num)
+        {
+            if (string.IsNullOrWhiteSpace(num)) return "";
+            return System.Text.RegularExpressions.Regex.Replace(num, @"[^0-9]", "");
+        }
+
+        private static bool IsMatchingAddress(string a, string b)
+        {
+            var na = NormalizeNumber(a);
+            var nb = NormalizeNumber(b);
+            if (na == nb) return true;
+            if (na.Length >= 7 && nb.Length >= 7)
+            {
+                return na.EndsWith(nb) || nb.EndsWith(na);
+            }
+            return false;
+        }
+
+        private static string FormatSmsDate(long timestamp)
+        {
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).LocalDateTime;
+            if (dt.Date == DateTime.Today)
+            {
+                return dt.ToString("h:mm tt");
+            }
+            if (dt.Date == DateTime.Today.AddDays(-1))
+            {
+                return "Yesterday";
+            }
+            return dt.ToString("MMM d");
+        }
     }
 
     public class MediaItemViewModel
@@ -995,5 +1693,26 @@ namespace LinkSync.Desktop
         public string Text { get; set; } = string.Empty;
         public string TimestampText { get; set; } = DateTime.Now.ToString("HH:mm:ss");
         public string CharCountText => $"{Text.Length} chars";
+    }
+
+    public class SmsThreadViewModel
+    {
+        public string ThreadId { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Snippet { get; set; } = string.Empty;
+        public string TimestampText { get; set; } = string.Empty;
+        public string Initials { get; set; } = string.Empty;
+        public bool HasUnread { get; set; }
+        public List<SmsMessageItem> Messages { get; set; } = new();
+    }
+
+    public class ContactViewModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Number { get; set; } = string.Empty;
+        public bool Starred { get; set; }
+        public string Initials { get; set; } = string.Empty;
     }
 }

@@ -21,6 +21,11 @@ object LinkSyncProtocol {
     const val OP_SMS_INCOMING: Short = 0x0040
     const val OP_SMS_SEND: Short = 0x0041
     const val OP_CALL_ACTION: Short = 0x0042
+    const val OP_CONTACTS_REQ: Short = 0x0043
+    const val OP_CONTACTS_RESP: Short = 0x0044
+    const val OP_SMS_LIST_REQ: Short = 0x0045
+    const val OP_SMS_LIST_RESP: Short = 0x0046
+    const val OP_CALL_STATE: Short = 0x0047
     const val OP_DEVICE_STATUS: Short = 0x0050
 
     fun writeFrame(out: OutputStream, opCode: Short, payload: ByteArray) {

@@ -407,6 +407,34 @@
      - Added a 4th tab to the pinned bottom navigation bar: **Settings** (`layoutSettings`), housing microphone audio toggles, always-ask popup preferences, ghost overlay isolation, shake-to-stop sensitivity, and device profiles.
 * **Consequences:** Both applications feel bespoke, high-craft, and native to their respective platforms (Windows 10 / Samsung One UI 6), eliminating all AI-generated tells while preserving 100% of the underlying high-performance C# / Kotlin engines.
 
+---
+
+### ADR-026: Group 9 Communication Hub, Microsoft Phone Link Information Architecture, and OtpToastWindow
+* **Status:** Accepted & Implemented ✅
+* **Context:**  
+  1. *Microsoft Phone Link Bloat & Account Dependency:* Microsoft Phone Link requires linking both devices to a Microsoft cloud account, runs heavy background Edge/WebView2 hosts consuming 400MB+ RAM, and fails on corporate or restricted networks.
+  2. *Communication Needs for Power Users:* Users need to read and reply to SMS, browse contacts, and dial calls directly from their laptop keyboard without picking up the phone.
+  3. *Verification Codes (2FA OTP Friction):* Logging into banking, GitHub, Google, or corporate portals requires glancing at the phone to read an SMS code and manually typing 6 digits before it expires.
+* **Alternatives Considered:**
+  1. *Web-based SMS portals (Google Messages for Web):* Requires Google Account sync, QR code pairing, active internet connection, and separate browser tab.
+  2. *Heavy Electron-based Phone Link clones:* Exceeds the 40MB RAM target on the HP Folio 9470M dual-core laptop.
+  3. *Native C# .NET 9 WPF Phone Link Architecture + Android Content Provider Bridge:* Lightweight, local peer-to-peer TCP socket synchronization using binary protocol OpCodes (`0x0040` through `0x0047`).
+* **Decision:**
+  1. **Microsoft Phone Link Information Architecture:**
+     - Created three dedicated left rail tabs in `MainWindow.xaml`: `💬 Messages`, `📞 Calls`, and `👥 Contacts`.
+     - `ViewMessages`: Two-pane layout with 320px left rail of threaded conversations and right stream of chronological message bubbles with inline reply composer and `Enter` key shortcut.
+     - `ViewCalls`: 12-button keypad (`0-9`, `*`, `#`), recent dial history, and active in-call card with duration timer (`DispatcherTimer`) and remote `[ End Call ]`.
+     - `ViewContacts`: Full directory search with real-time text filter and 1-click `[ Call ]` and `[ SMS ]` buttons.
+  2. **High-Precision 2FA OTP Extraction & Action Center Toast:**
+     - Android `SmsBroadcastReceiver` runs with priority 999 to catch incoming SMS immediately.
+     - `OtpExtractor.kt` uses strict digit pattern matching (`\d{4,8}` and `G-\d{6}`) and filters out false positives such as calendar years (`2023-2028`).
+     - Phone forwards `OP_SMS_INCOMING` with the extracted code.
+     - Desktop automatically copies the code to the Windows clipboard AND displays `OtpToastWindow.xaml`: a floating, dark fluent card in the bottom-right corner of the screen with sound chime, an 8-second countdown progress bar, and a prominent 1-click **`[ 📋 Copy Code: XXXXXX ]`** button.
+  3. **Zero-Cloud P2P Security:**
+     - 100% of contacts, SMS messages, and call actions stay strictly between the phone and laptop over the local socket (`localhost:54884` / Wi-Fi).
+* **Consequences:** Near-instant 2FA verification (copy and paste `Ctrl + V` in 1 second), seamless SMS texting and phone calling from laptop, zero cloud accounts, and idle desktop RAM remains under 40 MB.
+
+
 
 
 

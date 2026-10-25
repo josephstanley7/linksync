@@ -363,7 +363,7 @@
 * **What it does:** View and search your phone contacts directly on your laptop dashboard.
 * **Why it matters:** Find a phone number or contact without picking up your phone.
 * **How to test:** Open Contacts tab; search for a name; contact card appears.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -371,7 +371,7 @@
 * **What it does:** A dialer on your laptop that triggers your phone to place a phone call (with call controls like Mute and Hangup).
 * **Why it matters:** Dial numbers quickly with your laptop keypad.
 * **How to test:** Type a number, click Call; your phone begins ringing the number.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -379,7 +379,7 @@
 * **What it does:** A clean chat interface on your laptop showing your SMS conversation threads, allowing you to read incoming texts and send replies through your phone.
 * **Why it matters:** Text your contacts directly from your computer while working.
 * **How to test:** Send a text from your laptop; recipient receives SMS from your phone number.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -387,7 +387,7 @@
 * **What it does:** When your bank or an app texts you a login code (e.g. `Your verification code is 482910`), Windows displays a popup notification with a single button: **`[ Copy Code: 482910 ]`**.
 * **Why it matters:** No more opening your phone or memorizing 6 digits—click the button and paste (`Ctrl + V`) directly into your browser login page.
 * **How to test:** Receive a verification SMS; verify the Windows toast appears with the 1-click button; click it and paste.
-* **Status:** `[ ] PENDING`
+* **Status:** `[x] VERIFIED`
 
 ---
 
@@ -413,4 +413,4 @@
 
 | Active Feature | Description | Next Action |
 |---|---|---|
-| **Feature 15** | **Clean 1-Tap Recording Start** | Stay in any other app, tap **LinkSync Record**, tap **Start now**. Confirm LinkSync does not open and recording starts. |
+| **Feature 44** | **Drag-and-Drop Files to Phone** | Drag any file from Windows Explorer onto LinkSync; verify transfer to phone `Downloads/`. |

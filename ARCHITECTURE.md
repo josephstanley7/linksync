@@ -124,6 +124,11 @@ All frames exchanged between phone and desktop over TCP use an 8-byte big-endian
 | `64` | `0x0040` | `OP_SMS_INCOMING` | JSON with sender, body, and parsed 2FA verification code. |
 | `65` | `0x0041` | `OP_SMS_SEND` | JSON with recipient and text body to send via cellular radio. |
 | `66` | `0x0042` | `OP_CALL_ACTION` | JSON with dial number, answer, or hangup command. |
+| `67` | `0x0043` | `OP_CONTACTS_REQ` | Laptop request to sync phone contacts directory. |
+| `68` | `0x0044` | `OP_CONTACTS_RESP` | JSON array of `ContactItem` with display name and phone numbers. |
+| `69` | `0x0045` | `OP_SMS_LIST_REQ` | Laptop request to sync recent SMS message threads. |
+| `70` | `0x0046` | `OP_SMS_LIST_RESP` | JSON array of `SmsMessageItem` with address, body, date, and type. |
+| `71` | `0x0047` | `OP_CALL_STATE` | JSON with phone state (`IDLE`, `RINGING`, `OFFHOOK`) and active number. |
 | `80` | `0x0050` | `OP_DEVICE_STATUS` | JSON with battery percentage, charging state, and Wi-Fi dBm. |
 
 ---
@@ -211,6 +216,31 @@ All frames exchanged between phone and desktop over TCP use an 8-byte big-endian
 * **Layout Switching (2-on-a-Row Grid vs 1-Column List):**
   * Persisted `screenshot_layout_mode` preference ("grid" vs "list").
   * 2-on-a-row grid arranges cards into paired horizontal weights (`weightSum = 2f`) with preview images, top-right file size badges (`1.4 MB`), video play icons (`▶`), ellipsized titles, and high-tactile pill action buttons (`▶ Open` and `⚡ Sync`).
+
+### G. Communication Hub Architecture (Phone Link Model & 1-Click OTP)
+* **Contacts Synchronization (`ContactsSyncManager.kt` & `OP_CONTACTS_RESP`):**
+  * Queries `ContactsContract.CommonDataKinds.Phone` using projection `[CONTACT_ID, DISPLAY_NAME, NUMBER, PHOTO_THUMBNAIL_URI]`.
+  * Deduplicates multiple phone numbers under single contacts and normalizes non-numeric dialing tokens.
+  * Dispatched over wire as JSON array; desktop maintains in-memory `List<ContactViewModel>` with real-time substring filtering (`ContactSearch_TextChanged`).
+* **SMS Messages Threading Engine (`SmsManagerService.kt` & `OP_SMS_LIST_RESP`):**
+  * Queries `Telephony.Sms.CONTENT_URI` retrieving conversation streams with `THREAD_ID`, `ADDRESS`, `BODY`, `DATE`, `TYPE` (`MESSAGE_TYPE_INBOX` vs `MESSAGE_TYPE_SENT`).
+  * Desktop groups messages by thread ID and contact address in `MainWindow.xaml.cs`.
+  * Left pane (320px) displays conversation previews with contact display names, timestamps, and snippet previews. Right pane renders full chronological bubble history with responsive alignment (inbox messages left-aligned `#1A1D27`, sent messages right-aligned `#0284C7`).
+  * Outgoing SMS dispatch via `OP_SMS_SEND` calls Android `SmsManager.sendTextMessage()` with multipart support.
+* **Dialer & Call Control Subsystem (`CallControlManager.kt` & `OP_CALL_ACTION`):**
+  * Desktop digital dialer features 12 tactile keys (`0-9`, `*`, `#`), editable number box, quick backspace, and 1-click dial.
+  * Phone executes remote call via `Intent.ACTION_CALL` (or fallback to `ACTION_DIAL`).
+  * Real-time telephony callback via Android 12+ `TelephonyCallback.CallStateListener` and legacy `PhoneStateListener` pushes `OP_CALL_STATE` frames (`IDLE`, `RINGING`, `OFFHOOK`).
+  * Active call card on desktop tracks call duration with an embedded `DispatcherTimer` and provides a remote `[ End Call ]` button invoking Android `TelecomManager.endCall()`.
+* **1-Click 2FA OTP Toast Pipeline (`SmsBroadcastReceiver.kt` & `OtpToastWindow.xaml`):**
+  * `SmsBroadcastReceiver` intercepts raw SMS PDUs with highest priority (`priority = 999`).
+  * `OtpExtractor.kt` matches incoming verification tokens using high-precision regex (`\d{4,8}` and `G-\d{6}`) while explicitly filtering out false positives such as calendar years (`2023-2028`).
+  * Phone dispatches `OP_SMS_INCOMING` containing `{sender, body, otpCode}`.
+  * Desktop `SyncServer` catches event, instantly writes `otpCode` to the Windows Clipboard (`System.Windows.Clipboard.SetText`), and instantiates `OtpToastWindow`:
+    - Screen-bottom-right floating fluent card with 120ms slide-up animation.
+    - System sound chime (`SystemSounds.Asterisk.Play()`).
+    - Prominent tactile button: **`[ 📋 Copy Code: XXXXXX ]`**.
+    - Auto-dismiss countdown timer (8 seconds) with progress bar and manual `✕` close.
 
 ---
 

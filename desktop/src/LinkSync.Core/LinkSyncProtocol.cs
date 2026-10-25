@@ -23,6 +23,11 @@ namespace LinkSync.Core
         public const ushort OpSmsIncoming = 0x0040;
         public const ushort OpSmsSend = 0x0041;
         public const ushort OpCallAction = 0x0042;
+        public const ushort OpContactsReq = 0x0043;
+        public const ushort OpContactsResp = 0x0044;
+        public const ushort OpSmsListReq = 0x0045;
+        public const ushort OpSmsListResp = 0x0046;
+        public const ushort OpCallState = 0x0047;
         public const ushort OpDeviceStatus = 0x0050;
 
         public record Frame(ushort OpCode, byte[] Payload);

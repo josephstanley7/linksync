@@ -105,6 +105,27 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Name="BtnNavMessages" Style="{StaticResource NavRailButton}" Click="BtnNavMessages_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8BD;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Messages &amp; SMS" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Name="BtnNavCalls" Style="{StaticResource NavRailButton}" Click="BtnNavCalls_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE717;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Calls &amp; Dialer" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Name="BtnNavContacts" Style="{StaticResource NavRailButton}" Click="BtnNavContacts_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE779;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Contacts" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Button>
+
                     <Button Name="BtnNavPhotos" Style="{StaticResource NavRailButton}" Click="BtnNavPhotos_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xEB9F;" FontFamily="{StaticResource FontIcons}" FontSize="14" Width="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
@@ -425,6 +446,378 @@
                         </Grid>
                     </Border>
                 </Grid>
+            </Grid>
+
+            <!-- ======================================================== -->
+            <!-- TAB: MESSAGES (TWO-PANE PHONE LINK LAYOUT)               -->
+            <!-- ======================================================== -->
+            <Grid Name="ViewMessages" Grid.Row="1" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Pane: Conversations List -->
+                <Border Grid.Column="0" Background="{StaticResource BrushCard}" CornerRadius="8" 
+                        BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" Margin="0,0,12,0">
+                    <Grid Margin="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Search Box & Refresh -->
+                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Name="TxtSmsSearch" Style="{StaticResource ModernTextBox}" 
+                                     Tag="Search messages..." TextChanged="TxtSmsSearch_TextChanged"/>
+                            <Button Grid.Column="1" Name="BtnRefreshSms" Style="{StaticResource SecondaryButton}" 
+                                    Margin="6,0,0,0" ToolTip="Sync latest messages from phone" Click="BtnRefreshSms_Click">
+                                <TextBlock Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="13" Foreground="{StaticResource BrushAccentLight}"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Conversations List -->
+                        <ListBox Grid.Row="1" Name="LstSmsThreads" Background="Transparent" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 SelectionChanged="LstSmsThreads_SelectionChanged">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,0,0,6"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="10,8">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ItemBorder" Property="Background" Value="{StaticResource BrushCardHover}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="ItemBorder" Property="Background" Value="#1E293B"/>
+                                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                                        <Setter TargetName="ItemBorder" Property="BorderThickness" Value="1"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <!-- Right Pane: Active Thread Chat Stream -->
+                <Border Grid.Column="1" Background="{StaticResource BrushCard}" CornerRadius="8" 
+                        BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                    <Grid Margin="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Thread Header -->
+                        <Border Grid.Row="0" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="0,0,0,12" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Avatar Initial -->
+                                <Border Grid.Column="0" Width="38" Height="38" CornerRadius="19" Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="1" Margin="0,0,12,0">
+                                    <TextBlock Name="TxtActiveAvatar" Text="&#xE8BD;" FontFamily="{StaticResource FontIcons}" FontSize="15" Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Name="TxtActiveThreadName" Text="Select a Conversation" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                    <TextBlock Name="TxtActiveThreadNumber" Text="Direct SMS via Galaxy A17" FontSize="11" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="2" Name="BtnCallActiveThread" Style="{StaticResource SecondaryButton}" Click="BtnCallActiveThread_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE717;" FontFamily="{StaticResource FontIcons}" FontSize="13" Foreground="{StaticResource BrushSuccess}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Call Contact" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Scrollable Message Bubbles -->
+                        <ScrollViewer Grid.Row="1" Name="ScrollSmsMessages" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,4,0,8">
+                            <StackPanel Name="PnlSmsMessages" Orientation="Vertical"/>
+                        </ScrollViewer>
+
+                        <!-- Bottom Composition Bar -->
+                        <Grid Grid.Row="2" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Name="TxtSmsInput" Style="{StaticResource ModernTextBox}" Tag="Type an SMS message (Enter to send)..." KeyDown="TxtSmsInput_KeyDown" MaxLength="1000" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Name="BtnSendSms" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0" Height="36" Width="44" ToolTip="Send SMS via connected phone" Click="BtnSendSms_Click">
+                                <TextBlock Text="&#xE724;" FontFamily="{StaticResource FontIcons}" FontSize="14"/>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ======================================================== -->
+            <!-- TAB: CALLS & DIALER (PHONE LINK KEYPAD & CONTROLS)       -->
+            <!-- ======================================================== -->
+            <Grid Name="ViewCalls" Grid.Row="1" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="380"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Pane: Digital Dialer Keypad -->
+                <Border Grid.Column="0" Background="{StaticResource BrushCard}" CornerRadius="8" 
+                        BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" Margin="0,0,12,0" Padding="18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- In-Call Status Banner (Visible during active call) -->
+                        <Border Grid.Row="0" Name="CardActiveCall" Visibility="Collapsed" Background="#064E3B" BorderBrush="{StaticResource BrushSuccess}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Name="TxtActiveCallNumber" Text="+1 (555) 019-2834" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                        <TextBlock Name="TxtActiveCallState" Text="Calling..." FontSize="11" Foreground="{StaticResource BrushSuccess}" Margin="0,0,8,0"/>
+                                        <TextBlock Name="TxtActiveCallTimer" Text="00:00" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Button Grid.Column="1" Name="BtnEndCall" Style="{StaticResource DangerButton}" Height="34" Width="80" Click="BtnEndCall_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE711;" FontFamily="{StaticResource FontIcons}" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="End" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Dial Number Display & Backspace -->
+                        <Grid Grid.Row="1" Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Name="TxtDialNumber" Style="{StaticResource ModernTextBox}" FontSize="20" FontWeight="SemiBold" 
+                                     Tag="Enter number to dial..." Height="44" Padding="10,6" KeyDown="TxtDialNumber_KeyDown"/>
+                            <Button Grid.Column="1" Name="BtnDialBackspace" Style="{StaticResource SecondaryButton}" Height="44" Width="44" Margin="6,0,0,0" ToolTip="Backspace" Click="BtnDialBackspace_Click">
+                                <TextBlock Text="&#xE750;" FontFamily="{StaticResource FontIcons}" FontSize="15" Foreground="{StaticResource BrushTextMuted}"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- 3x4 Tactile Keypad Grid -->
+                        <UniformGrid Grid.Row="2" Rows="4" Columns="3" Margin="0,0,0,14">
+                            <!-- Row 1 -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="1">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="1" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="2">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="2" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="A B C" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="3">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="3" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="D E F" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <!-- Row 2 -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="4">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="4" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="G H I" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="5">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="5" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="J K L" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="6">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="6" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="M N O" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <!-- Row 3 -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="7">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="7" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="P Q R S" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="8">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="8" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="T U V" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="9">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="9" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="W X Y Z" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <!-- Row 4 -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="*">
+                                <TextBlock Text="*" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="0">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="0" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="+" FontSize="9" Foreground="{StaticResource BrushTextMuted}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Margin="4" Height="48" Click="KeypadDigit_Click" Tag="#">
+                                <TextBlock Text="#" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Button>
+                        </UniformGrid>
+
+                        <!-- Call Trigger Button -->
+                        <Button Grid.Row="3" Name="BtnPlaceCall" Style="{StaticResource PrimaryButton}" Background="{StaticResource BrushSuccess}" 
+                                Height="44" FontSize="14" FontWeight="Bold" Click="BtnPlaceCall_Click">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="&#xE717;" FontFamily="{StaticResource FontIcons}" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Call on Galaxy A17" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Right Pane: Fast Dial & Call Tips -->
+                <Border Grid.Column="1" Background="{StaticResource BrushCard}" CornerRadius="8" 
+                        BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Quick Dial &amp; Recent Contacts" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,12"/>
+
+                        <ListBox Grid.Row="1" Name="LstQuickDial" Background="Transparent" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,0,0,6"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border Name="CardBorder" Background="#161922" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="CardBorder" Property="Background" Value="{StaticResource BrushCardHover}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ======================================================== -->
+            <!-- TAB: CONTACTS DIRECTORY (SYNCED PHONE BOOK)              -->
+            <!-- ======================================================== -->
+            <Grid Name="ViewContacts" Grid.Row="1" Visibility="Collapsed">
+                <Border Background="{StaticResource BrushCard}" CornerRadius="8" 
+                        BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Search, Count & Sync Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Name="TxtContactSearch" Style="{StaticResource ModernTextBox}" 
+                                     Tag="Search contacts by name or phone number..." TextChanged="TxtContactSearch_TextChanged"/>
+
+                            <Border Grid.Column="1" Background="#12151C" CornerRadius="4" Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Name="TxtContactsCount" Text="0 Contacts" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </Border>
+
+                            <Button Grid.Column="2" Name="BtnRefreshContacts" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Click="BtnRefreshContacts_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="13" Foreground="{StaticResource BrushAccentLight}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Sync Phonebook" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Contacts List -->
+                        <ListBox Grid.Row="1" Name="LstContacts" Background="Transparent" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,0,0,6"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border Name="CardBorder" Background="#161922" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="CardBorder" Property="Background" Value="{StaticResource BrushCardHover}"/>
+                                                        <Setter TargetName="CardBorder" Property="BorderBrush" Value="#334155"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </Grid>
+                </Border>
             </Grid>
 
             <!-- ======================================================== -->

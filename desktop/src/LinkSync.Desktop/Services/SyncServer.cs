@@ -24,6 +24,10 @@ namespace LinkSync.Desktop.Services
         public event Action? DeviceDisconnected;
         public event Action<string>? ClipboardReceived;
         public event Action<string, byte[]>? MediaReceived;
+        public event Action<List<ContactItem>>? ContactsReceived;
+        public event Action<List<SmsMessageItem>>? SmsListReceived;
+        public event Action<IncomingSmsNotification>? SmsReceived;
+        public event Action<CallStateNotification>? CallStateChanged;
 
         public bool IsClientConnected => _currentClient?.Connected == true;
         public string SaveDirectory { get; set; }
@@ -122,6 +126,70 @@ namespace LinkSync.Desktop.Services
                         case LinkSyncProtocol.OpFileSync:
                             HandleIncomingFile(frame.Payload, stream);
                             break;
+
+                        case LinkSyncProtocol.OpContactsResp:
+                            try
+                            {
+                                string contactsJson = Encoding.UTF8.GetString(frame.Payload);
+                                var contacts = JsonSerializer.Deserialize<List<ContactItem>>(contactsJson);
+                                if (contacts != null)
+                                {
+                                    ContactsReceived?.Invoke(contacts);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[SyncServer] Error parsing contacts: {ex.Message}");
+                            }
+                            break;
+
+                        case LinkSyncProtocol.OpSmsListResp:
+                            try
+                            {
+                                string smsListJson = Encoding.UTF8.GetString(frame.Payload);
+                                var smsList = JsonSerializer.Deserialize<List<SmsMessageItem>>(smsListJson);
+                                if (smsList != null)
+                                {
+                                    SmsListReceived?.Invoke(smsList);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[SyncServer] Error parsing SMS list: {ex.Message}");
+                            }
+                            break;
+
+                        case LinkSyncProtocol.OpSmsIncoming:
+                            try
+                            {
+                                string smsJson = Encoding.UTF8.GetString(frame.Payload);
+                                var incomingSms = JsonSerializer.Deserialize<IncomingSmsNotification>(smsJson);
+                                if (incomingSms != null)
+                                {
+                                    SmsReceived?.Invoke(incomingSms);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[SyncServer] Error parsing incoming SMS: {ex.Message}");
+                            }
+                            break;
+
+                        case LinkSyncProtocol.OpCallState:
+                            try
+                            {
+                                string callJson = Encoding.UTF8.GetString(frame.Payload);
+                                var callNotification = JsonSerializer.Deserialize<CallStateNotification>(callJson);
+                                if (callNotification != null)
+                                {
+                                    CallStateChanged?.Invoke(callNotification);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[SyncServer] Error parsing call state: {ex.Message}");
+                            }
+                            break;
                     }
                 }
             }
@@ -213,6 +281,58 @@ namespace LinkSync.Desktop.Services
                 Buffer.BlockCopy(fileBytes, 0, payload, 4 + metaBytes.Length, fileBytes.Length);
 
                 await LinkSyncProtocol.WriteFrameAsync(stream, LinkSyncProtocol.OpFileSync, payload);
+            }
+        }
+
+        public async Task RequestContactsAsync()
+        {
+            var stream = _currentStream;
+            if (stream != null && IsClientConnected)
+            {
+                await LinkSyncProtocol.WriteFrameAsync(stream, LinkSyncProtocol.OpContactsReq, Array.Empty<byte>());
+            }
+        }
+
+        public async Task RequestSmsListAsync(int limit = 100)
+        {
+            var stream = _currentStream;
+            if (stream != null && IsClientConnected)
+            {
+                byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new { limit });
+                await LinkSyncProtocol.WriteFrameAsync(stream, LinkSyncProtocol.OpSmsListReq, payload);
+            }
+        }
+
+        public async Task SendSmsAsync(string address, string body)
+        {
+            var stream = _currentStream;
+            if (stream != null && IsClientConnected)
+            {
+                var req = new SendSmsRequest { Address = address, Body = body };
+                byte[] payload = JsonSerializer.SerializeToUtf8Bytes(req);
+                await LinkSyncProtocol.WriteFrameAsync(stream, LinkSyncProtocol.OpSmsSend, payload);
+            }
+        }
+
+        public async Task DialCallAsync(string number)
+        {
+            var stream = _currentStream;
+            if (stream != null && IsClientConnected)
+            {
+                var req = new CallActionRequest { Action = "DIAL", Number = number };
+                byte[] payload = JsonSerializer.SerializeToUtf8Bytes(req);
+                await LinkSyncProtocol.WriteFrameAsync(stream, LinkSyncProtocol.OpCallAction, payload);
+            }
+        }
+
+        public async Task EndCallAsync()
+        {
+            var stream = _currentStream;
+            if (stream != null && IsClientConnected)
+            {
+                var req = new CallActionRequest { Action = "HANGUP", Number = "" };
+                byte[] payload = JsonSerializer.SerializeToUtf8Bytes(req);
+                await LinkSyncProtocol.WriteFrameAsync(stream, LinkSyncProtocol.OpCallAction, payload);
             }
         }
     }

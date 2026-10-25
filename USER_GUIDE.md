@@ -329,6 +329,40 @@ LinkSync features a modern, bespoke user interface designed according to the hig
 
 ---
 
+## Step 10: Phone Calls, SMS Texting & 1-Click Verification Codes (Phone Link Style)
+
+LinkSync brings full communication hub capabilities directly to your laptop dashboard, designed with the clean layout of Microsoft Phone Link but with 0% cloud requirements and zero bloat:
+
+### A. Reading and Sending SMS Messages:
+1. On the left navigation rail of LinkSync, click **💬 Messages**.
+2. **Left Conversations Pane:** See all your recent text threads arranged chronologically, with contact names, dates, and preview snippets.
+3. **Right Chat Stream:** Click any conversation to view the full chat history with distinct chat bubbles (blue for your sent messages, dark gray for received messages).
+4. **Sending a Reply:** Type your message in the bottom input bar and press **Enter** (or click the Send button). Your phone immediately sends the SMS through your carrier network without touching your phone.
+
+### B. Calling Contacts and the Digital Keypad:
+1. Click **📞 Calls** on the left rail.
+2. **Tactile Dial Pad:** Use your mouse or laptop number keys to enter a phone number on the 12-button keypad (`0-9`, `*`, `#`).
+3. Click the green **`[ 📞 Call ]`** button. Your phone immediately initiates the cellular call.
+4. **Live Call Duration & Hangup:** An active in-call card displays the dial status, live elapsed call timer (`00:01:23`), and a red **`[ 🛑 End Call ]`** button to remotely terminate the call.
+
+### C. Browsing and Searching Contacts:
+1. Click **👥 Contacts** on the left rail.
+2. Type any name or number in the instant search box.
+3. Every contact card shows the contact's name, phone number, and two 1-click action buttons:
+   * **`[ 📞 Call ]`**: Instantly switches to the dialer and places a call.
+   * **`[ 💬 SMS ]`**: Instantly opens a new SMS conversation thread with that person.
+
+### D. 1-Click Copy Verification Codes (2FA OTP Toasts):
+1. Whenever your bank, Google, Microsoft, or any service sends you a 2-factor login SMS (e.g. *"Your security code is 482910"*):
+2. A sleek notification card slides up from the bottom-right corner of your laptop screen with an audible chime:
+   * Displays the sender name (e.g., `Google` or `Chase`).
+   * Displays the message preview.
+   * Automatically copies the code directly into your Windows clipboard!
+   * Shows a prominent 1-click button: **`[ 📋 Copy Code: 482910 ]`**.
+3. Simply press **`Ctrl + V`** on your laptop browser or login page to paste the code immediately!
+
+---
+
 ## Frequently Asked Questions & Troubleshooting (FAQ)
 
 #### Q: The laptop says "Searching for Phone" and won't turn green. What should I do?

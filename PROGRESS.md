@@ -1,7 +1,7 @@
 # PROGRESS.md — Project State & Milestone Tracker
 
 > **Last Updated:** 2026-10-25  
-> **Current Status:** **Features 1-39 Verified** ✅ | **Active Sprint: Complete UI/UX Makeover & Craft Redesign** 🎨  
+> **Current Status:** **Features 1-43 Verified** ✅ | **Active Sprint: Group 10 Drag-and-Drop File Push & APK Installer** 📦  
 > **Target Deployment:** HP EliteBook Folio 9470M & Samsung Galaxy A17  
 > 📌 **PRIMARY FEATURE VERIFICATION TRACKER:** [`FEATURES.md`](file:///c:/Users/thenp/Desktop/linksync/FEATURES.md) (All features tracked one by one in simple English)
 
@@ -25,7 +25,12 @@
   * Physical Laptop Keyboard Remote Typing (Feature 38) ===========> 100% DONE ✅
   * "Screen-Off" Power Saving Mode (Feature 39) ===================> 100% DONE ✅
 [ Sprint: Full UI/UX Makeover & Polish     ] ====================> 100% DONE ✅
-[ Phase 5: Communication Hub & 1-Click OTP ] ====================> PENDING
+[ Phase 5: Communication Hub & 1-Click OTP ] ====================> 100% DONE ✅
+  * Synced Phone Contacts List on Laptop (Feature 40) =============> 100% DONE ✅
+  * Digital Phone Dialer & Hangup Control (Feature 41) ============> 100% DONE ✅
+  * Two-Pane SMS Threads & Outgoing Dispatcher (Feature 42) ======> 100% DONE ✅
+  * 1-Click Copy Verification Codes Toast (Feature 43) ============> 100% DONE ✅
+[ Phase 6: Drag-and-Drop Push & Installer  ] ====================> PENDING ⏳
 ```
 
 ---
@@ -142,11 +147,17 @@
 
 ---
 
-### Phase 5: Communication Hub, 1-Click OTP & Reverse Push (PENDING ⏳)
-* [ ] **SMS Thread Viewer & Outgoing SMS Sender.**
-* [ ] **1-Click 2FA OTP Toast:** Windows Action Center notification with `[ Copy Code: 123456 ]`.
-* [ ] **Digital Phone Dialer & Contacts Sync.**
-* [ ] **APK Drag-and-Drop Auto-Installer.**
+### Phase 5: Communication Hub, 1-Click OTP & Phone Link Architecture (COMPLETED & VERIFIED ✅)
+* [x] **Synced Phone Contacts List on Laptop (Feature 40):** Real-time queries over `ContactsContract.CommonDataKinds.Phone` synced via `OP_CONTACTS_REQ` / `OP_CONTACTS_RESP` with instant search filter and one-click `[ Call ]` / `[ SMS ]` dispatch.
+* [x] **Digital Phone Dialer on Laptop (Feature 41):** 12-button tactile dial pad (`0-9`, `*`, `#`), backspace, remote dialing over `TelecomManager.ACTION_CHANGE_DEFAULT_DIALER` / `Intent.ACTION_CALL`, in-call status timer (`DispatcherTimer`), and remote hangup via `TelecomManager.endCall()`.
+* [x] **Two-Pane SMS Thread Viewer & Sender (Feature 42):** 320px left rail grouped by contact/phone number with timestamp and snippet; right rail message stream with bubble styling and inline composition bar with `Enter` send.
+* [x] **1-Click 2FA OTP Verification Code Toast (Feature 43):** Android `SmsBroadcastReceiver` extracts OTP using strict pattern matching (`\d{4,8}` and `G-\d{6}`), forwards `OP_SMS_INCOMING` to desktop, which immediately copies the code to Windows clipboard AND displays a floating `OtpToastWindow` with sound chime and `[ Copy Code: XXXXXX ]` button.
+
+---
+
+### Phase 6: Drag-and-Drop Push & Installer (PENDING ⏳)
+* [ ] **Drag-and-Drop Files to Phone (Feature 44):** Direct drag from Windows Explorer to phone `Downloads/`.
+* [ ] **1-Click Android App Installer (Feature 45):** APK drop opens install prompt on phone.
 
 ---
 
@@ -178,3 +189,5 @@
 20. **2026-10-25:** Initialized a dedicated LinkSync git repository (separate from the home-folder `test.git`) and published it to GitHub so cloud agents can compile without pinning the Folio 9470M.
 21. **2026-10-25:** Fixed Android 14+ MediaProjection permission prompt infinite loop (Feature 15). Removed `android:noHistory="true"` and `FLAG_ACTIVITY_NO_HISTORY` which caused Android to kill the prompt caller upon showing the system dialog and endlessly recreate it upon user tap. Changed launchMode to `singleTop`, added single-shot `hasLaunched` guard across instance states, added a 1000ms debounce in `LinkSyncTileService.onClick()`, and modernized display resolution detection.
 22. **2026-10-25:** Verified Features 36, 37, and 38 (60 FPS QuickSync H.264 screen mirroring, mouse/trackpad remote control, and physical laptop keyboard typing). Eliminated the background terminal console window by setting `CreateNoWindow = true`, `WindowStyle = Hidden`, and redirecting stdout/stderr asynchronously. Added a dedicated "Phone Mirror (60 FPS)" navigation tab to the LinkSync desktop dashboard with live stream badges, launch/stop controls, and a complete mouse/keyboard shortcut cheat sheet.
+23. **2026-10-25:** Implemented system-wide UI makeover eliminating "AI slop". Engineered obsidian charcoal palette (`#0A0C10`), tactile 120ms press animations, Segoe MDL2 vector icons, 2x2 Balanced Action Matrix on Windows, and Samsung One UI 6 Viewing Zone (top 25%) vs Interaction Zone (bottom 75%) with 4-tab pinned navigation on Android.
+24. **2026-10-25:** Implemented Group 9 Communication Hub (Features 40-43). Reverse-engineered Microsoft Phone Link information architecture: added Contacts tab with instant search, Phone Dialer tab with tactile keypad and call timer, two-pane SMS conversation threads with direct reply dispatch, and a native Windows 2FA verification code toast (`OtpToastWindow.xaml`) with high-confidence regex (`\d{4,8}`) and 1-click clipboard copy.

@@ -29,6 +29,9 @@ import com.linksync.app.net.NetworkDiscovery
 import com.linksync.app.observer.ClipboardLogcatWatcher
 import com.linksync.app.observer.ScreenshotFileWatcher
 import com.linksync.app.observer.ScreenshotObserver
+import com.linksync.app.telephony.CallControlManager
+import com.linksync.app.telephony.ContactsSyncManager
+import com.linksync.app.telephony.SmsManagerService
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -65,6 +68,7 @@ class ForegroundSyncService : Service() {
     private var lastSentToPcText: String? = null
     private var lastSentToPcTime: Long = 0L
     private var clipboardLogcatWatcher: ClipboardLogcatWatcher? = null
+    private var callControlManager: CallControlManager? = null
 
     companion object {
         const val ACTION_STOP = "com.linksync.app.action.STOP"
@@ -106,6 +110,31 @@ class ForegroundSyncService : Service() {
 
         fun sendClipboardDirect(text: String) {
             activeInstance?.get()?.sendClipboardInternal(text)
+        }
+
+        fun handleIncomingSms(address: String, body: String, otpCode: String, timestamp: Long) {
+            activeInstance?.get()?.let { service ->
+                service.scope.launch {
+                    service.socket?.let { s ->
+                        try {
+                            val obj = JSONObject().apply {
+                                put("address", address)
+                                put("body", body)
+                                put("otpCode", otpCode)
+                                put("timestamp", timestamp)
+                            }
+                            LinkSyncProtocol.writeFrame(
+                                s.getOutputStream(),
+                                LinkSyncProtocol.OP_SMS_INCOMING,
+                                obj.toString().toByteArray(StandardCharsets.UTF_8)
+                            )
+                            Log.i("LinkSyncService", "Forwarded OP_SMS_INCOMING to desktop from $address (OTP=$otpCode)")
+                        } catch (e: Exception) {
+                            Log.e("LinkSyncService", "Failed to send OP_SMS_INCOMING: ${e.message}")
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -180,7 +209,34 @@ class ForegroundSyncService : Service() {
         clipboardLogcatWatcher = ClipboardLogcatWatcher(this, scope)
         clipboardLogcatWatcher?.start()
         NetworkDiscovery.startPassiveListener(this, scope)
+
+        callControlManager = CallControlManager(this) { state, number ->
+            scope.launch {
+                sendCallState(state, number)
+            }
+        }
+        callControlManager?.startListening()
+
         startConnectionLoop()
+    }
+
+    private fun sendCallState(state: String, number: String) {
+        socket?.let { s ->
+            try {
+                val obj = JSONObject().apply {
+                    put("state", state)
+                    put("number", number)
+                }
+                LinkSyncProtocol.writeFrame(
+                    s.getOutputStream(),
+                    LinkSyncProtocol.OP_CALL_STATE,
+                    obj.toString().toByteArray(StandardCharsets.UTF_8)
+                )
+                Log.i("LinkSyncService", "Notified desktop of OP_CALL_STATE: state=$state, number=$number")
+            } catch (e: Exception) {
+                Log.w("LinkSyncService", "Failed to send OP_CALL_STATE: ${e.message}")
+            }
+        }
     }
 
     private fun startScreenshotPollingLoop() {
@@ -408,6 +464,85 @@ class ForegroundSyncService : Service() {
 
             LinkSyncProtocol.OP_FILE_SYNC_ACK -> {
                 handleFileSyncAck(frame.payload)
+            }
+
+            LinkSyncProtocol.OP_CONTACTS_REQ -> {
+                scope.launch {
+                    val contactsJson = ContactsSyncManager.fetchContactsJson(this@ForegroundSyncService)
+                    socket?.let { s ->
+                        try {
+                            LinkSyncProtocol.writeFrame(
+                                s.getOutputStream(),
+                                LinkSyncProtocol.OP_CONTACTS_RESP,
+                                contactsJson.toByteArray(StandardCharsets.UTF_8)
+                            )
+                            Log.i("LinkSyncService", "Replied with OP_CONTACTS_RESP (${contactsJson.length} bytes)")
+                        } catch (e: Exception) {
+                            Log.e("LinkSyncService", "Failed to send OP_CONTACTS_RESP: ${e.message}")
+                        }
+                    }
+                }
+            }
+
+            LinkSyncProtocol.OP_SMS_LIST_REQ -> {
+                scope.launch {
+                    val smsJson = SmsManagerService.fetchRecentSmsJson(this@ForegroundSyncService, 100)
+                    socket?.let { s ->
+                        try {
+                            LinkSyncProtocol.writeFrame(
+                                s.getOutputStream(),
+                                LinkSyncProtocol.OP_SMS_LIST_RESP,
+                                smsJson.toByteArray(StandardCharsets.UTF_8)
+                            )
+                            Log.i("LinkSyncService", "Replied with OP_SMS_LIST_RESP (${smsJson.length} bytes)")
+                        } catch (e: Exception) {
+                            Log.e("LinkSyncService", "Failed to send OP_SMS_LIST_RESP: ${e.message}")
+                        }
+                    }
+                }
+            }
+
+            LinkSyncProtocol.OP_SMS_SEND -> {
+                scope.launch {
+                    try {
+                        val jsonStr = String(frame.payload, StandardCharsets.UTF_8)
+                        val req = JSONObject(jsonStr)
+                        val address = req.optString("address", "")
+                        val body = req.optString("body", "")
+                        val sent = SmsManagerService.sendSms(this@ForegroundSyncService, address, body)
+                        Log.i("LinkSyncService", "OP_SMS_SEND to $address result=$sent")
+
+                        delay(800)
+                        val updatedSms = SmsManagerService.fetchRecentSmsJson(this@ForegroundSyncService, 100)
+                        socket?.let { s ->
+                            LinkSyncProtocol.writeFrame(
+                                s.getOutputStream(),
+                                LinkSyncProtocol.OP_SMS_LIST_RESP,
+                                updatedSms.toByteArray(StandardCharsets.UTF_8)
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Log.e("LinkSyncService", "Error handling OP_SMS_SEND: ${e.message}")
+                    }
+                }
+            }
+
+            LinkSyncProtocol.OP_CALL_ACTION -> {
+                scope.launch {
+                    try {
+                        val jsonStr = String(frame.payload, StandardCharsets.UTF_8)
+                        val req = JSONObject(jsonStr)
+                        val action = req.optString("action", "DIAL")
+                        val number = req.optString("number", "")
+                        if (action.equals("DIAL", ignoreCase = true)) {
+                            callControlManager?.dialCall(number)
+                        } else if (action.equals("HANGUP", ignoreCase = true)) {
+                            callControlManager?.endCall()
+                        }
+                    } catch (e: Exception) {
+                        Log.e("LinkSyncService", "Error handling OP_CALL_ACTION: ${e.message}")
+                    }
+                }
             }
         }
     }
@@ -687,6 +822,7 @@ class ForegroundSyncService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        callControlManager?.stopListening()
         clipboardLogcatWatcher?.stop()
         screenshotObserver?.let { contentResolver.unregisterContentObserver(it) }
         screenshotFileWatcher?.stop()
