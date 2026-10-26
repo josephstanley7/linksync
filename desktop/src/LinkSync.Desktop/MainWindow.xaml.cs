@@ -29,6 +29,7 @@ namespace LinkSync.Desktop
         private readonly PhoneMirrorManager _mirrorManager;
         private ScreenCaptureService _captureService = null!;
         private bool _isExplicitExit = false;
+        private MenuItem? _trayStatusItem;
 
         [DllImport("user32.dll")]
         public static extern bool LockWorkStation();
@@ -187,86 +188,118 @@ namespace LinkSync.Desktop
             }
         }
 
+        private MenuItem CreateShareXItem(string header, string iconGlyph, RoutedEventHandler? onClick = null, bool isCheckable = false, bool isChecked = false)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                IsCheckable = isCheckable,
+                IsChecked = isChecked,
+                Style = (Style)FindResource("ShareXTrayMenuItemStyle")
+            };
+
+            var iconBlock = new TextBlock
+            {
+                Text = iconGlyph,
+                FontSize = 13,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            item.Icon = iconBlock;
+
+            if (onClick != null)
+            {
+                item.Click += onClick;
+            }
+
+            return item;
+        }
+
+        private Separator CreateShareXSeparator()
+        {
+            return new Separator
+            {
+                Style = (Style)FindResource("ShareXTraySeparatorStyle")
+            };
+        }
+
         private void SetupTrayMenu()
         {
-            var menu = new ContextMenu();
-
-            var itemSnipRegion = new MenuItem { Header = "📸 Take Screenshot (Region)" };
-            itemSnipRegion.Click += (s, e) => _captureService.CaptureRegion();
-            menu.Items.Add(itemSnipRegion);
-
-            var itemSnipFull = new MenuItem { Header = "🖥️ Take Screenshot (Full Screen)" };
-            itemSnipFull.Click += (s, e) => _captureService.CaptureFullScreen();
-            menu.Items.Add(itemSnipFull);
-
-            var itemSnipWindow = new MenuItem { Header = "🪟 Take Screenshot (Active Window)" };
-            itemSnipWindow.Click += (s, e) => _captureService.CaptureActiveWindow();
-            menu.Items.Add(itemSnipWindow);
-
-            menu.Items.Add(new Separator());
-
-            var itemRecordRegion = new MenuItem { Header = "🎥 Record Screen (Region)" };
-            itemRecordRegion.Click += (s, e) => _captureService.StartScreenRecordingRegion();
-            menu.Items.Add(itemRecordRegion);
-
-            var itemRecordFull = new MenuItem { Header = "🖥️ Record Screen (Full Screen)" };
-            itemRecordFull.Click += (s, e) => _captureService.StartScreenRecordingFullScreen();
-            menu.Items.Add(itemRecordFull);
-
-            menu.Items.Add(new Separator());
-
-            var itemFolder = new MenuItem { Header = "📂 Open Screenshots Folder" };
-            itemFolder.Click += (s, e) => BtnOpenFolder_Click(s, e);
-            menu.Items.Add(itemFolder);
-
-            var itemAnnotator = new MenuItem { Header = "✏️ Open Image Annotator" };
-            itemAnnotator.Click += (s, e) => BtnOpenAnnotator_Click(s, e);
-            menu.Items.Add(itemAnnotator);
-
-            var itemVideo = new MenuItem { Header = "🎬 Open Video Suite" };
-            itemVideo.Click += (s, e) => BtnOpenVideoSuite_Click(s, e);
-            menu.Items.Add(itemVideo);
-
-            var itemMirror = new MenuItem { Header = "📱 Mirror Phone Screen (60 FPS)" };
-            itemMirror.Click += async (s, e) => await StartPhoneMirroringAsync(turnScreenOff: false);
-            menu.Items.Add(itemMirror);
-
-            var itemMirrorScreenOff = new MenuItem { Header = "🌙 Mirror Screen-Off (Battery Saver)" };
-            itemMirrorScreenOff.Click += async (s, e) => await StartPhoneMirroringAsync(turnScreenOff: true);
-            menu.Items.Add(itemMirrorScreenOff);
-
-            menu.Items.Add(new Separator());
-
-            var itemOpen = new MenuItem { Header = "📱 Open LinkSync" };
-            itemOpen.Click += (s, e) => RestoreWindow();
-            menu.Items.Add(itemOpen);
-
-            var itemStatus = new MenuItem { Header = "🟢 Status: Active (Port 54884)", IsEnabled = false };
-            menu.Items.Add(itemStatus);
-
-            menu.Items.Add(new Separator());
-
-            var itemStartup = new MenuItem
+            var menu = new ContextMenu
             {
-                Header = "Start with Windows",
-                IsCheckable = true,
-                IsChecked = IsRunOnStartupEnabled()
+                Style = (Style)FindResource("ShareXTrayContextMenuStyle")
             };
+
+            // 1. Capture > (ShareX Category 1)
+            var menuCapture = CreateShareXItem("Capture", "📷");
+            menuCapture.Items.Add(CreateShareXItem("Region (Ctrl + PrtScn)", "✂️", (s, e) => _captureService.CaptureRegion()));
+            menuCapture.Items.Add(CreateShareXItem("Entire screen (PrtScn)", "🖥️", (s, e) => _captureService.CaptureFullScreen()));
+            menuCapture.Items.Add(CreateShareXItem("Active window", "🪟", (s, e) => _captureService.CaptureActiveWindow()));
+            menuCapture.Items.Add(CreateShareXSeparator());
+            menuCapture.Items.Add(CreateShareXItem("Screen recording (Region)", "🔴", (s, e) => _captureService.StartScreenRecordingRegion()));
+            menuCapture.Items.Add(CreateShareXItem("Screen recording (Full screen)", "🎥", (s, e) => _captureService.StartScreenRecordingFullScreen()));
+            menu.Items.Add(menuCapture);
+
+            // 2. Tools > (ShareX Category 2)
+            var menuTools = CreateShareXItem("Tools", "🧰");
+            menuTools.Items.Add(CreateShareXItem("Image Annotator (Arrows, Badges, Blur)", "✏️", (s, e) => BtnOpenAnnotator_Click(s, e)));
+            menuTools.Items.Add(CreateShareXItem("Video Suite & Lossless GIF Maker", "🎬", (s, e) => BtnOpenVideoSuite_Click(s, e)));
+            menuTools.Items.Add(CreateShareXSeparator());
+            menuTools.Items.Add(CreateShareXItem("Phone Mirror (60 FPS QuickSync)", "📱", async (s, e) => await StartPhoneMirroringAsync(turnScreenOff: false)));
+            menuTools.Items.Add(CreateShareXItem("Phone Mirror (Screen-Off / Battery Saver)", "🌙", async (s, e) => await StartPhoneMirroringAsync(turnScreenOff: true)));
+            menuTools.Items.Add(CreateShareXSeparator());
+            menuTools.Items.Add(CreateShareXItem("Lock WorkStation (Remote Lock)", "🔒", (s, e) => LockWorkStation()));
+            menu.Items.Add(menuTools);
+
+            menu.Items.Add(CreateShareXSeparator());
+
+            // 3. Folders & History (ShareX Middle Group)
+            menu.Items.Add(CreateShareXItem("Screenshots folder...", "📁", (s, e) => BtnOpenFolder_Click(s, e)));
+            menu.Items.Add(CreateShareXItem("Universal Clipboard History...", "📋", (s, e) =>
+            {
+                RestoreWindow();
+                SwitchTab(NavTab.Clipboard);
+            }));
+            menu.Items.Add(CreateShareXItem("Photos & Gallery...", "🖼️", (s, e) =>
+            {
+                RestoreWindow();
+                SwitchTab(NavTab.Photos);
+            }));
+
+            menu.Items.Add(CreateShareXSeparator());
+
+            // 4. Settings & Startup
+            menu.Items.Add(CreateShareXItem("Settings & Preferences...", "⚙️", (s, e) =>
+            {
+                RestoreWindow();
+                SwitchTab(NavTab.Settings);
+            }));
+
+            var itemStartup = CreateShareXItem("Start with Windows", "⚡", null, isCheckable: true, isChecked: IsRunOnStartupEnabled());
             itemStartup.Click += (s, e) =>
             {
                 SetRunOnStartup(itemStartup.IsChecked);
             };
             menu.Items.Add(itemStartup);
 
-            menu.Items.Add(new Separator());
+            menu.Items.Add(CreateShareXSeparator());
 
-            var itemExit = new MenuItem { Header = "Exit LinkSync" };
-            itemExit.Click += (s, e) =>
+            // 5. Connection Status & Hub Launcher
+            string statusText = _server.IsClientConnected ? "🟢 Connected: Galaxy A17" : "🟡 Waiting for device...";
+            _trayStatusItem = CreateShareXItem(statusText, "📶");
+            _trayStatusItem.IsEnabled = false;
+            menu.Items.Add(_trayStatusItem);
+
+            var itemOpen = CreateShareXItem("Open LinkSync Hub", "💻", (s, e) => RestoreWindow());
+            itemOpen.FontWeight = FontWeights.Bold;
+            menu.Items.Add(itemOpen);
+
+            var itemExit = CreateShareXItem("Exit LinkSync", "❌", (s, e) =>
             {
                 _isExplicitExit = true;
                 Close();
                 Application.Current.Shutdown();
-            };
+            });
             menu.Items.Add(itemExit);
 
             _trayManager.SetContextMenu(menu);
@@ -379,6 +412,11 @@ namespace LinkSync.Desktop
                 TxtSidebarBattery.Text = "Connected";
                 TxtSidebarNet.Text = "Wi-Fi / USB";
 
+                if (_trayStatusItem != null)
+                {
+                    _trayStatusItem.Header = $"🟢 Connected: {handshake.DeviceName}";
+                }
+
                 _ = _server.RequestContactsAsync();
                 _ = _server.RequestSmsListAsync();
                 _ = _server.RequestNotificationsAsync();
@@ -399,6 +437,11 @@ namespace LinkSync.Desktop
                 DotCompactStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11));
                 TxtSidebarBattery.Text = "Waiting";
                 TxtSidebarNet.Text = "Searching";
+
+                if (_trayStatusItem != null)
+                {
+                    _trayStatusItem.Header = "🟡 Waiting for device...";
+                }
             });
         }
 
@@ -1154,14 +1197,14 @@ namespace LinkSync.Desktop
                 MaxFps = 60
             };
 
-            bool success = await _mirrorManager.StartMirrorAsync(options);
+            bool success = await _mirrorManager.StartMirrorAsync(options, _server.ConnectedClientIp);
             if (!success)
             {
                 MessageBox.Show(
-                    "Could not start phone mirroring.\n\nPlease verify:\n1. Your phone is connected via Wi-Fi or USB.\n2. USB debugging / Wireless debugging is enabled in Developer Options on your phone.",
+                    "Could not start phone mirroring.\n\nTo mirror your phone wirelessly or via cable:\n1. If using USB Cable: Plug in your phone with USB Debugging enabled.\n2. If using Wi-Fi / Hotspot: Connect via USB once (LinkSync arms wireless mirror), or enable Wireless Debugging in Developer Options.\n\nHardware H.264 video decoding (Intel QuickSync) is active.",
                     "LinkSync Mirror",
                     MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    MessageBoxImage.Information);
             }
         }
 

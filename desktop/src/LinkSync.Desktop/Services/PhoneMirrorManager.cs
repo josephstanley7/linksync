@@ -1,6 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LinkSync.Desktop.Services
@@ -75,7 +80,49 @@ namespace LinkSync.Desktop.Services
             return null;
         }
 
-        public async Task<bool> StartMirrorAsync(MirrorOptions? options = null)
+        public static List<string> GetCandidateDeviceIps(string? hintIp = null)
+        {
+            var candidates = new List<string>();
+
+            // 1. Hint from connected TCP client (Phone's real IP on Wi-Fi or Hotspot)
+            if (!string.IsNullOrEmpty(hintIp))
+            {
+                if (IPAddress.TryParse(hintIp, out var parsedIp) && !IPAddress.IsLoopback(parsedIp))
+                {
+                    candidates.Add(hintIp);
+                }
+            }
+
+            // 2. Default Gateways from active network adapters
+            // (When laptop is connected to Mobile Hotspot, the phone IS the default gateway!)
+            try
+            {
+                foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus != OperationalStatus.Up) continue;
+                    var ipProps = ni.GetIPProperties();
+                    foreach (var gw in ipProps.GatewayAddresses)
+                    {
+                        if (gw.Address.AddressFamily == AddressFamily.InterNetwork &&
+                            !gw.Address.Equals(IPAddress.Any) &&
+                            !gw.Address.Equals(IPAddress.None) &&
+                            !IPAddress.IsLoopback(gw.Address))
+                        {
+                            string gwStr = gw.Address.ToString();
+                            if (!candidates.Contains(gwStr))
+                            {
+                                candidates.Add(gwStr);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return candidates;
+        }
+
+        public async Task<bool> StartMirrorAsync(MirrorOptions? options = null, string? clientIp = null)
         {
             if (IsMirroringActive)
             {
@@ -94,9 +141,14 @@ namespace LinkSync.Desktop.Services
             string? serial = await _adbManager.GetActiveDeviceSerialAsync();
             if (string.IsNullOrEmpty(serial))
             {
-                // Attempt Wi-Fi connect if wireless debugging is running on phone
-                await TryConnectAdbWifiAsync("192.168.100.8");
-                serial = await _adbManager.GetActiveDeviceSerialAsync();
+                // Attempt Wi-Fi / Hotspot connect if wireless debugging is running on phone
+                var candidateIps = GetCandidateDeviceIps(clientIp);
+                foreach (var ip in candidateIps)
+                {
+                    await TryConnectAdbWifiAsync(ip);
+                    serial = await _adbManager.GetActiveDeviceSerialAsync();
+                    if (!string.IsNullOrEmpty(serial)) break;
+                }
             }
 
             var args = $"--video-codec=h264 -b {options.BitRateMbps}M --max-fps={options.MaxFps} " +
@@ -199,7 +251,7 @@ namespace LinkSync.Desktop.Services
             catch { }
         }
 
-        private async Task TryConnectAdbWifiAsync(string ip)
+        private static async Task<bool> TryConnectAdbWifiAsync(string ip)
         {
             string adbPath = AdbTunnelManager.ResolveAdbPath();
             try
@@ -209,12 +261,20 @@ namespace LinkSync.Desktop.Services
                     FileName = adbPath,
                     Arguments = $"connect {ip}:5555",
                     UseShellExecute = false,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
                 };
                 using var proc = Process.Start(psi);
-                if (proc != null) await proc.WaitForExitAsync();
+                if (proc != null)
+                {
+                    using var cts = new CancellationTokenSource(2500);
+                    await proc.WaitForExitAsync(cts.Token);
+                    string output = await proc.StandardOutput.ReadToEndAsync();
+                    return output.Contains("connected to", StringComparison.OrdinalIgnoreCase);
+                }
             }
             catch { }
+            return false;
         }
 
         public void Dispose()

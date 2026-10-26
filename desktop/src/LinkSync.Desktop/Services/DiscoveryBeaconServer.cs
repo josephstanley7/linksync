@@ -108,7 +108,7 @@ namespace LinkSync.Desktop.Services
                         catch { }
                     }
 
-                    await Task.Delay(2000, token);
+                    await Task.Delay(1200, token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -117,9 +117,32 @@ namespace LinkSync.Desktop.Services
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[DiscoveryBeaconServer] Broadcast error: {ex.Message}");
-                    await Task.Delay(3000, token);
+                    await Task.Delay(1500, token);
                 }
             }
+        }
+
+        public void TriggerBroadcastNow()
+        {
+            if (_udpClient == null || _cts == null || _cts.IsCancellationRequested) return;
+            Task.Run(async () =>
+            {
+                try
+                {
+                    byte[] beacon = Encoding.UTF8.GetBytes($"LINKSYNC_DISCOVERY|{_deviceName}|{_tcpPort}|{_deviceId}");
+                    var targets = GetDiscoveryTargetAddresses();
+                    foreach (var target in targets)
+                    {
+                        try
+                        {
+                            var endpoint = new IPEndPoint(target, DiscoveryPort);
+                            await _udpClient.SendAsync(beacon, beacon.Length, endpoint);
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            });
         }
 
         private static List<IPAddress> GetDiscoveryTargetAddresses()

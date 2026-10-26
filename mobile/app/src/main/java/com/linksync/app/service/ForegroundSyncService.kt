@@ -251,6 +251,12 @@ class ForegroundSyncService : Service() {
         clipboardLogcatWatcher = ClipboardLogcatWatcher(this, scope)
         clipboardLogcatWatcher?.start()
         NetworkDiscovery.startPassiveListener(this, scope)
+        NetworkDiscovery.onDesktopDiscovered = { discovered ->
+            if (!isConnected) {
+                Log.i("LinkSyncService", "Instant discovery wakeup: ${discovered.deviceName} at ${discovered.ipAddress}")
+                reconnectSignal.trySend(Unit)
+            }
+        }
 
         callControlManager = CallControlManager(this) { state, number ->
             scope.launch {
@@ -309,6 +315,7 @@ class ForegroundSyncService : Service() {
             while (isActive) {
                 try {
                     val candidateHosts = mutableListOf<String>()
+                    val usbPlugged = isUsbConnected()
 
                     // 1. Manual IP override (if entered by user in advanced settings)
                     val manualHost = prefs.getString("manual_target_host", "")?.trim() ?: ""
@@ -316,15 +323,17 @@ class ForegroundSyncService : Service() {
                         candidateHosts.add(manualHost)
                     }
 
-                    // 2. Always prioritize USB reverse loopback FIRST (0ms latency)
-                    candidateHosts.add("127.0.0.1")
+                    // 2. If USB cable is physically plugged in, prioritize 127.0.0.1 reverse loopback FIRST (0ms latency)
+                    if (usbPlugged) {
+                        candidateHosts.add("127.0.0.1")
+                    }
 
                     // 3. Dynamic UDP discovery across Wi-Fi & Hotspot (zero-configuration)
                     val cachedIp = prefs.getString("last_discovered_ip", "") ?: ""
                     NetworkDiscovery.sendDiscoveryPing(cachedIp)
 
                     // Brief pause for incoming pong/discovery datagrams
-                    delay(250)
+                    delay(300)
 
                     val discoveredList = NetworkDiscovery.discoveredDesktops.value
                     val pairedDeviceId = prefs.getString("paired_device_id", "") ?: ""
@@ -340,32 +349,17 @@ class ForegroundSyncService : Service() {
                                 connectedDesktopName = pairedDevice.deviceName
                                 targetPort = pairedDevice.port
                                 prefs.edit().putString("last_discovered_ip", pairedDevice.ipAddress).apply()
-                            } else {
-                                val first = discoveredList.first()
-                                if (!candidateHosts.contains(first.ipAddress)) {
-                                    candidateHosts.add(first.ipAddress)
-                                }
                             }
-                        } else {
-                            if (discoveredList.size == 1) {
-                                val single = discoveredList.first()
-                                prefs.edit()
-                                    .putString("paired_device_id", single.deviceId)
-                                    .putString("paired_device_name", single.deviceName)
-                                    .putString("last_discovered_ip", single.ipAddress)
-                                    .apply()
-                                if (!candidateHosts.contains(single.ipAddress)) {
-                                    candidateHosts.add(single.ipAddress)
-                                }
-                                connectedDesktopName = single.deviceName
-                                targetPort = single.port
-                                Log.i("LinkSyncService", "Auto-paired with single discovered PC: ${single.deviceName} [${single.deviceId}]")
-                            } else {
-                                Log.i("LinkSyncService", "Multiple PCs online (${discoveredList.size}). Waiting for user selection.")
-                                connectionState.value = BridgeConnectionState(
-                                    isConnected = false,
-                                    lastSyncMessage = "Found ${discoveredList.size} computers. Tap 'Select PC' to pair."
-                                )
+                        }
+
+                        // Add all discovered devices as candidates in priority order
+                        for (dev in discoveredList) {
+                            if (!candidateHosts.contains(dev.ipAddress)) {
+                                candidateHosts.add(dev.ipAddress)
+                            }
+                            if (connectedDesktopName.isEmpty()) {
+                                connectedDesktopName = dev.deviceName
+                                targetPort = dev.port
                             }
                         }
                     }
@@ -379,7 +373,10 @@ class ForegroundSyncService : Service() {
                         candidateHosts.add(wifiHost)
                     }
 
-
+                    // 4. If USB was not plugged in, still include 127.0.0.1 as a fallback at the end
+                    if (!usbPlugged && !candidateHosts.contains("127.0.0.1")) {
+                        candidateHosts.add("127.0.0.1")
+                    }
 
                     var connected = false
                     for (host in candidateHosts) {
@@ -387,7 +384,8 @@ class ForegroundSyncService : Service() {
                         try {
                             Log.i("LinkSyncService", "Attempting connection to desktop at $host:$targetPort...")
                             val s = Socket()
-                            s.connect(InetSocketAddress(host, targetPort), 2500)
+                            val timeoutMs = if (host == "127.0.0.1" && !usbPlugged) 600 else 2500
+                            s.connect(InetSocketAddress(host, targetPort), timeoutMs)
                             socket = s
                             isConnected = true
                             targetHost = host

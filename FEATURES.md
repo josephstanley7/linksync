@@ -25,9 +25,9 @@
 ---
 
 ### Feature 2: Automatic Wi-Fi & Mobile Hotspot Connection
-* **What it does:** When your phone and laptop are on the same Wi-Fi network—or when you tether your laptop to your phone's Mobile Hotspot outside the house—opening the phone app automatically connects to your laptop without typing any IP addresses or passwords.
-* **Why it matters:** Completely wireless. You don't need home internet or cables—it talks directly over your local Wi-Fi or directly through your phone's mobile hotspot gateway (`10.253.25.103:54885`).
-* **How to test:** Connect your laptop to your phone's hotspot or home Wi-Fi. Open LinkSync on your phone. The status cards on both your phone and laptop turn green automatically.
+* **What it does:** When your phone and laptop are on the same Wi-Fi network—or when you tether your laptop to your phone's Mobile Hotspot outside the house—opening the phone app automatically connects to your laptop without typing any IP addresses or passwords. Phone Mirror (scrcpy) also works wirelessly: it dynamically resolves the phone's real IP from the live TCP connection or the default gateway (hotspot IP), so you don't need to be on the same flat LAN.
+* **Why it matters:** Completely wireless. You don't need home internet or cables—it talks directly over your local Wi-Fi or directly through your phone's mobile hotspot gateway (`10.253.25.103:54885`). Mirror starts with one click even over hotspot.
+* **How to test:** Connect your laptop to your phone's hotspot or home Wi-Fi. Open LinkSync on your phone. The status cards on both your phone and laptop turn green automatically. Then click "Phone Mirror (60 FPS)" in the tray menu — scrcpy should start without manual `adb connect`.
 * **Status:** `[x] VERIFIED`
 
 ---

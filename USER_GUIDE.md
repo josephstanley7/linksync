@@ -283,14 +283,17 @@ Copying links, passwords, and verification codes back and forth is completely au
 Samsung deliberately restricts "Samsung DeX" to expensive flagship phones and completely blocks it on Galaxy A-series devices. **LinkSync breaks this barrier**, bringing high-performance 60 FPS real-time phone mirroring and full laptop control to your Samsung Galaxy A17!
 
 ### A. Starting the Mirror Window:
-1. Ensure your phone is connected to your laptop (via Wi-Fi or USB cable).
+1. Ensure your phone is connected to your laptop (via Wi-Fi, Mobile Hotspot, or USB cable). **No special setup required** — LinkSync automatically finds the phone's IP from the live connection.
 2. On your laptop, you can start mirroring in any of these 4 convenient ways:
    * **From Overview:** Click the large **"📱 Start Mirroring"** button inside the "Real-Time Phone Mirroring" card.
    * **From Sidebar:** Click **"📱 Phone Mirror (60 FPS)"** on the left navigation rail.
    * **From Header:** Click the quick **"📱 Mirror"** button in the top right header strip.
-   * **From System Tray:** Right-click the LinkSync icon by the clock and select **"📱 Mirror Phone Screen (60 FPS)"**.
+   * **From System Tray:** Right-click the LinkSync icon by the clock → **`Tools >`** → **"📱 Mirror Phone Screen (60 FPS)"**.
 3. A crisp, high-definition window titled **`LinkSync Phone Mirror (Samsung Galaxy A17)`** pops up immediately!
 4. **Hardware-Accelerated Smoothness:** The stream runs at a fluid **60 FPS** using native **Intel HD Graphics QuickSync H.264 decoding**, so your laptop fans stay quiet and your CPU usage stays under 3%.
+
+> **Works on all networks:** Mirror works over home Wi-Fi, mobile hotspot, and USB cable. If you use a USB cable at least once, LinkSync arms wireless ADB on your phone automatically so mirror works wirelessly afterwards without re-plugging.
+
 
 ### B. Controlling Your Phone with Laptop Mouse & Trackpad:
 You can interact with your phone just like touching the screen:

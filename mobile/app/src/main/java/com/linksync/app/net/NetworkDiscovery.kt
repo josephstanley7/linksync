@@ -27,6 +27,8 @@ object NetworkDiscovery {
     private val _discoveredDesktops = MutableStateFlow<List<DiscoveredDesktop>>(emptyList())
     val discoveredDesktops: StateFlow<List<DiscoveredDesktop>> = _discoveredDesktops.asStateFlow()
 
+    var onDesktopDiscovered: ((DiscoveredDesktop) -> Unit)? = null
+
     private var multicastLock: WifiManager.MulticastLock? = null
     private var passiveListenerJob: Job? = null
     private var discoverySocket: DatagramSocket? = null
@@ -84,6 +86,7 @@ object NetworkDiscovery {
                                 discoveredMap[devId] = item
                                 _discoveredDesktops.value = discoveredMap.values.toList()
                                 Log.i(TAG, "Discovered Desktop: $name ($senderIp:$port) [ID: $devId]")
+                                onDesktopDiscovered?.invoke(item)
                             }
                         }
                     } catch (e: Exception) {

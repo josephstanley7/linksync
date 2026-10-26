@@ -521,6 +521,40 @@
      - Added header back buttons (`btnBackClipboard`, `btnBackScreenshots`, `btnBackSettings`) and wired Android's `onBackPressedDispatcher` to smoothly return to the main dashboard from any subscreen.
 * **Consequences:** Instantaneous notification availability upon connecting, clean zero-clutter mobile experience with single-card identity, and direct 1-click access to all media editing features.
 
+---
+
+### ADR-028: ShareX-Grade WPF ContextMenu via Full ControlTemplate (Not WinForms ToolStripProfessionalRenderer)
+* **Status:** Accepted & Implemented ✅
+* **Context:**  
+  The tray right-click menu used the default WPF `MenuItem` theme which rendered as a plain white/grey Windows popup—incompatible with LinkSync's dark Fluent palette and lacking the icon glyph column, submenu chevrons, and status item that ShareX provides.
+* **Alternatives Considered:**
+  1. *WinForms `ContextMenuStrip` + `ToolStripProfessionalRenderer`:* WinForms owns the tray `NotifyIcon`, so one option was switching the tray to WinForms. Rejected: introduces a WinForms message loop alongside WPF, adds complexity, and WinForms renderer is not as flexible for custom icon columns.
+  2. *WPF ContextMenu with full `ControlTemplate`:* Define `ShareXTrayContextMenuStyle` and `ShareXTrayMenuItemStyle` in `DesignTokens.xaml`, overriding the entire item template. Icon column left-docked `TextBlock` (16px width); label column; chevron column for `HasItems`. Hover state `#282E3A`, separator style `#282D36` with left indent.
+* **Decision:** WPF `ControlTemplate` approach in `DesignTokens.xaml`.
+* **Consequences:** Zero WinForms dependency; full visual consistency with LinkSync's Fluent design system; `_trayStatusItem` updates live in `MainWindow.cs` event handlers.
+
+---
+
+### ADR-029: Dynamic Phone IP Resolution for Mirror — ConnectedClientIp + Gateway Enumeration
+* **Status:** Accepted & Implemented ✅
+* **Context:**  
+  `PhoneMirrorManager.cs` hardcoded `"192.168.100.8"` for the phone's ADB target. This broke scrcpy on every other network: hotspot (phone = gateway `10.253.25.103`), home Wi-Fi (DHCP assigns random IP), and USB (should use `127.0.0.1`).
+* **Alternatives Considered:**
+  1. *Manual IP input in Settings UI:* User-hostile; defeats automatic P2P promise.
+  2. *Parse `adb devices -l` output:* Fragile; only works if ADB Wi-Fi was already armed.
+  3. *`SyncServer.ConnectedClientIp` + gateway enumeration fallback:* Extract the real phone IP from the live established TCP socket (`TcpClient.Client.RemoteEndPoint`); additionally enumerate all `NetworkInterface` default gateways as fallback (handles hotspot topology). Try each candidate with `adb connect <ip>:5555` until success.
+* **Decision:** Option 3 — `ConnectedClientIp` hint + `GetCandidateDeviceIps()` gateway enumeration.
+* **Consequences:** Mirror works on any network without user configuration. Slight latency (up to ~3s) if first candidate fails and falls through to gateway list; acceptable trade-off vs manual input.
+
+---
+
+### ADR-030: `adb tcpip 5555` Auto-Arm After USB Reverse Tunnel
+* **Status:** Accepted & Implemented ✅
+* **Context:**  
+  When a USB cable was plugged in, `AdbTunnelManager` only ran `adb reverse tcp:54884 tcp:54884`. After unplugging, the phone had no ADB Wi-Fi daemon running, so `adb connect <ip>:5555` in the mirror flow always failed.
+* **Decision:** After a successful `adb reverse`, also run `adb tcpip 5555` to start the ADB Wi-Fi daemon on the phone. This arms wireless ADB as a side-effect of every USB connection.
+* **Consequences:** After one USB plug-in session, the phone's ADB Wi-Fi is permanently armed until reboot, enabling seamless wireless mirror without re-plugging the cable.
+
 
 
 

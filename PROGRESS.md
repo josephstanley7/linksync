@@ -1,7 +1,7 @@
 # PROGRESS.md — Project State & Milestone Tracker
 
-> **Last Updated:** 2026-10-25  
-> **Current Status:** **Features 1-43 Verified** ✅ | **Active Sprint: Group 10 Drag-and-Drop File Push & APK Installer** 📦  
+> **Last Updated:** 2026-10-26  
+> **Current Status:** **Features 1-43 Verified** ✅ | **Sprint Complete: ShareX Tray Menu + Phone Mirror Hotspot Fix + Universal Connectivity** ✅ | **Active Sprint: Group 10 Drag-and-Drop File Push & APK Installer** 📦  
 > **Target Deployment:** HP EliteBook Folio 9470M & Samsung Galaxy A17  
 > 📌 **PRIMARY FEATURE VERIFICATION TRACKER:** [`FEATURES.md`](file:///c:/Users/thenp/Desktop/linksync/FEATURES.md) (All features tracked one by one in simple English)
 
@@ -39,6 +39,13 @@
   * Direct Access to Image Annotator & Video Suite (Header & Rail) => 100% DONE ✅
   * Immediate Active Notification Hydration (OpNotificationReq) ==> 100% DONE ✅
   * Mobile De-cluttering (Settings Icon, Single Hero, Clean Back) => 100% DONE ✅
+[ Sprint: ShareX Tray Menu & Mirror Hotspot Fix ] ===========> 100% DONE ✅
+  * ShareX-Style Dark Fluent WPF Tray ContextMenu (emoji glyphs, submenus) => 100% DONE ✅
+  * Dynamic Phone IP Resolution for Mirror over Hotspot/Wi-Fi/USB =======> 100% DONE ✅
+  * Universal Connectivity Hardening (Hotspot, Wi-Fi, USB, any subnet) ==> 100% DONE ✅
+  * Discovery Beacon interval 2000ms -> 1200ms + TriggerBroadcastNow() ==> 100% DONE ✅
+  * adb tcpip 5555 auto-arm after USB reverse tunnel ====================> 100% DONE ✅
+  * Android ForegroundSyncService smarter USB/Wi-Fi candidate ordering ==> 100% DONE ✅
 [ Phase 6: Drag-and-Drop Push & Installer  ] ====================> PENDING ⏳
 ```
 
@@ -203,3 +210,6 @@
 25. **2026-10-25:** Reverse-engineered Microsoft Phone Link UI/UX across 4 core archetypes (Mobile Companion, Desktop 3-Column Messaging Hub, Floating Phone Mirror & Dock, and Fluent Device Settings). Formulated comprehensive Fluent 2 design specification artifact (`microsoft_phone_link_design_system.md`) with XAML and Android layout blueprints, design tokens, and kinematics.
 26. **2026-10-25:** Implemented system-wide Microsoft Phone Link UI Makeover on both nodes. On Desktop: Top 52px Fluent Header with status pill and horizontal navigation (`Messages`, `Calls`, `Contacts`, `Photos`, `Clipboard`), 280px Left Rail featuring device thumbnail (1-click 60 FPS mirror launch) + battery/transport telemetry + live notification feed with inline actions (`[ Reply ]`, `[ Call Back ]`, `[ View ]`, `[ Copy ]`), dynamic tab views with `ViewMessages` primary, and contextual power tools in Photos toolbar and header icons. On Mobile: Redesigned companion interface matching Phone Link Slide 1 (Laptop hero card, 3 primary quick action cards `[ Lock PC ]`, `[ Send files ]`, `[ Screen Tools ]`, recent sync activity card, grouped navigation cards, and compact status card). Implemented `OpLockPc` (`0x0051`) linking mobile Lock PC card directly to Win32 `LockWorkStation()`. Built and verified on Samsung Galaxy A17 and HP Folio 9470M with < 30 MB idle RAM.
 27. **2026-10-26:** Implemented Full-Height Collapsible Sidebar, Continuous Header, and Universal Android Notification Forwarding (`OP_NOTIFICATION` `0x0060`). Restructured spatial grid so the sidebar spans from top to bottom (Column 0) with a 1-click collapse/expand toggle (`BtnToggleSidebar`) shrinking to a 56px icon rail (`BtnCompactMirror`, `BtnCompactNotif` with live unread badge, `BtnCompactSnip`, `BtnCompactRecord`, `BtnCompactFolder`, `BtnCompactSettings`). Replaced window-wide header with a clean continuous header starting at the sidebar and running to the right edge, eradicating the redundant logo and yellow USB warning pill. Eliminated duplicated subheader strips in favor of single-source contextual toolbars. Registered `LinkSyncNotificationListener` intercepting notifications across all Android apps (WhatsApp, Telegram, Gmail, SMS, Missed Calls, Banking OTPs, System) with app glyph resolution, OTP detection, and live desktop notification card updates. Built and deployed self-contained Windows desktop receiver and compiled Inno Setup installer `LinkSync_Setup_v1.0.exe`.
+28. **2026-10-26:** Redesigned system tray right-click menu to ShareX grade. Dark Fluent `#181B20` rounded ContextMenu (`CornerRadius=6`), drop shadow, full `ControlTemplate` per item with icon glyph column and chevron (`›`) for submenus. Hierarchy: `Capture >` → `Tools >` → direct-access items → live `_trayStatusItem` status pill. Status updates live: `🟢 Connected: <DeviceName>` / `🟡 Waiting for device...`. `_trayStatusItem` updated on `OnDeviceConnected` / `OnDeviceDisconnected` events.
+29. **2026-10-26:** Fixed phone mirror failing over hotspot. `PhoneMirrorManager.cs` now calls `GetCandidateDeviceIps(hintIp)` which returns: (1) the phone's real TCP IP from `SyncServer.ConnectedClientIp` (extracted from live `TcpClient.Client.RemoteEndPoint`), plus (2) all default-gateway IPs from `NetworkInterface` enumeration (catches hotspot topology where phone = gateway at `10.253.25.103`). `StartMirrorAsync` loops candidates calling `adb connect <ip>:5555` until one succeeds. No more hardcoded `192.168.100.8`.
+30. **2026-10-26:** Hardened universal connectivity across all network types (Hotspot, home Wi-Fi, USB cable, any subnet). `AdbTunnelManager.EnsureReverseTunnelAsync` now also runs `adb tcpip 5555` after USB tunnel success, arming wireless ADB for post-unplug use. Android `ForegroundSyncService.startConnectionLoop()` fully rewritten: USB-connected path tries `127.0.0.1` first (2.5s timeout) then adds all Wi-Fi candidates; non-USB path tries all discovered desktop IPs first then `127.0.0.1` last (600ms fast-fail). `onDesktopDiscovered` callback in `NetworkDiscovery.kt` now wakes the reconnect loop instantly upon any beacon arrival. Discovery beacon interval reduced 2000ms → 1200ms + `TriggerBroadcastNow()` API for on-demand instant discovery.

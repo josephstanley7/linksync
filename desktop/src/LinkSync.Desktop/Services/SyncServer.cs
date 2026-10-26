@@ -32,6 +32,23 @@ namespace LinkSync.Desktop.Services
         public event Action<LinkSyncProtocol.PhoneNotificationPayload>? PhoneNotificationReceived;
 
         public bool IsClientConnected => _currentClient?.Connected == true;
+
+        public string? ConnectedClientIp
+        {
+            get
+            {
+                try
+                {
+                    if (_currentClient?.Client?.RemoteEndPoint is IPEndPoint ep)
+                    {
+                        return ep.Address.ToString();
+                    }
+                }
+                catch { }
+                return null;
+            }
+        }
+
         public string SaveDirectory { get; set; }
 
         public SyncServer(int port = 54884)

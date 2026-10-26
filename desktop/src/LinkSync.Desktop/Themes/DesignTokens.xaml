@@ -324,4 +324,155 @@
         </Setter>
     </Style>
 
+    <!-- ======================================================== -->
+    <!-- SHAREX-GRADE SYSTEM TRAY CONTEXT MENU THEME              -->
+    <!-- ======================================================== -->
+    <SolidColorBrush x:Key="BrushShareXTrayBg" Color="#181B20"/>
+    <SolidColorBrush x:Key="BrushShareXTrayBorder" Color="#30353E"/>
+    <SolidColorBrush x:Key="BrushShareXTrayHover" Color="#282E3A"/>
+    <SolidColorBrush x:Key="BrushShareXTrayText" Color="#D8DEE9"/>
+    <SolidColorBrush x:Key="BrushShareXTrayMuted" Color="#7A8494"/>
+    <SolidColorBrush x:Key="BrushShareXTraySeparator" Color="#282D36"/>
+
+    <!-- ShareX Tray Separator Style -->
+    <Style x:Key="ShareXTraySeparatorStyle" TargetType="Separator">
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Margin" Value="24,3,6,3"/>
+        <Setter Property="Background" Value="{StaticResource BrushShareXTraySeparator}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Background="{TemplateBinding Background}" Margin="{TemplateBinding Margin}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ShareX Tray MenuItem Style -->
+    <Style x:Key="ShareXTrayMenuItemStyle" TargetType="MenuItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushShareXTrayText}"/>
+        <Setter Property="FontFamily" Value="Segoe UI, Segoe UI Variable Text, -apple-system, sans-serif"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="Margin" Value="2,1"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border Name="Border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4"
+                            Padding="4,2,8,2">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26" SharedSizeGroup="MenuItemIconColumnGroup"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemShortcutColumnGroup"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left Icon Area -->
+                            <ContentPresenter Name="Icon"
+                                              ContentSource="Icon"
+                                              Grid.Column="0"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+
+                            <!-- Menu Item Header Text -->
+                            <ContentPresenter Name="Header"
+                                              ContentSource="Header"
+                                              Grid.Column="1"
+                                              Margin="4,0,12,0"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+
+                            <!-- Right Side: Submenu Chevron or Checkmark -->
+                            <TextBlock Name="RightGlyph"
+                                       Grid.Column="2"
+                                       Text=""
+                                       FontSize="11"
+                                       Foreground="{StaticResource BrushShareXTrayMuted}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"/>
+
+                            <!-- Submenu Popup for parent items -->
+                            <Popup Name="SubMenuPopup"
+                                   AllowsTransparency="True"
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Right"
+                                   HorizontalOffset="-2"
+                                   VerticalOffset="-3"
+                                   Focusable="False">
+                                <Border Name="SubMenuBorder"
+                                        Background="{StaticResource BrushShareXTrayBg}"
+                                        BorderBrush="{StaticResource BrushShareXTrayBorder}"
+                                        BorderThickness="1"
+                                        CornerRadius="5"
+                                        Padding="3,4,3,4">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="4" Opacity="0.45"/>
+                                    </Border.Effect>
+                                    <ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!-- When item has children (Submenu) -->
+                        <Trigger Property="HasItems" Value="True">
+                            <Setter TargetName="RightGlyph" Property="Text" Value="›"/>
+                            <Setter TargetName="RightGlyph" Property="FontWeight" Value="Bold"/>
+                            <Setter TargetName="RightGlyph" Property="FontSize" Value="14"/>
+                            <Setter TargetName="RightGlyph" Property="Margin" Value="4,-1,0,0"/>
+                        </Trigger>
+                        <!-- When item is checkable and checked -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="RightGlyph" Property="Text" Value="✓"/>
+                            <Setter TargetName="RightGlyph" Property="Foreground" Value="{StaticResource BrushAccentLight}"/>
+                            <Setter TargetName="RightGlyph" Property="FontWeight" Value="Bold"/>
+                        </Trigger>
+                        <!-- Hover trigger -->
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource BrushShareXTrayHover}"/>
+                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                            <Setter TargetName="RightGlyph" Property="Foreground" Value="#FFFFFF"/>
+                        </Trigger>
+                        <!-- Disabled trigger -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource BrushTextMuted}"/>
+                            <Setter TargetName="RightGlyph" Property="Foreground" Value="{StaticResource BrushTextMuted}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ShareX Tray ContextMenu Style -->
+    <Style x:Key="ShareXTrayContextMenuStyle" TargetType="ContextMenu">
+        <Setter Property="Background" Value="{StaticResource BrushShareXTrayBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushShareXTrayBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="3,4,3,4"/>
+        <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="16" ShadowDepth="5" Opacity="0.5"/>
+                        </Border.Effect>
+                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

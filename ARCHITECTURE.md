@@ -352,7 +352,17 @@ flowchart LR
    * Strictly enforces `--video-codec=h264` to utilize the Folio 9470M's Ivy Bridge Intel HD Graphics 4000 dedicated QuickSync hardware decoder.
    * Eliminates the thermal runaway and 100% CPU lockups caused by software-only HEVC, VP9, or AV1 decoding on dual-core hardware.
    * Maintains steady 60 FPS streaming with latency under 50 milliseconds and laptop CPU utilization under 3%.
-2. **Permission-Free Input Injection (UID 2000 Shell Level):**
+2. **Dynamic Phone IP Resolution (any network topology):**
+   * `PhoneMirrorManager.GetCandidateDeviceIps(hintIp)` builds a prioritized candidate list:
+     1. `SyncServer.ConnectedClientIp` — extracted from the live TCP socket's `RemoteEndPoint`. Correct on all topologies without any additional discovery.
+     2. All default gateway IPs enumerated from `NetworkInterface.GetAllNetworkInterfaces()` — catches mobile hotspot topology where the phone *is* the default gateway (e.g. `10.253.25.103`).
+   * `StartMirrorAsync` iterates candidates calling `adb connect <ip>:5555` with 2.5s timeout per attempt until one succeeds.
+   * No hardcoded IP addresses. Works on home Wi-Fi, mobile hotspot, office LAN, and any subnet without user configuration.
+3. **Permission-Free Input Injection (UID 2000 Shell Level):**
+   * Operates with Android `shell` UID (UID 2000), which possesses the system-level `android.permission.INJECT_EVENTS` capability.
+   * Maps physical mouse clicks, trackpad multi-touch gestures, right-click (Android Back), and middle-click (Android Home) directly into native Android `MotionEvent` and `KeyEvent` streams.
+   * Physical laptop keyboard keystrokes are translated into Android key codes or directly injected via UTF-8 text strings without requiring a custom on-screen keyboard on the phone.
+4. **Screen-Off Battery & Thermal Preservation:**
    * Operates with Android `shell` UID (UID 2000), which possesses the system-level `android.permission.INJECT_EVENTS` capability.
    * Maps physical mouse clicks, trackpad multi-touch gestures, right-click (Android Back), and middle-click (Android Home) directly into native Android `MotionEvent` and `KeyEvent` streams.
    * Physical laptop keyboard keystrokes are translated into Android key codes or directly injected via UTF-8 text strings without requiring a custom on-screen keyboard on the phone.

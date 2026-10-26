@@ -190,7 +190,26 @@ namespace LinkSync.Desktop.Services
                         if (proc == null) return false;
 
                         proc.WaitForExit(3000);
-                        return proc.ExitCode == 0;
+                        bool ok = proc.ExitCode == 0;
+
+                        // Also arm wireless ADB tcpip 5555 while USB is connected
+                        if (ok)
+                        {
+                            try
+                            {
+                                var tcpipProc = Process.Start(new ProcessStartInfo
+                                {
+                                    FileName = adbPath,
+                                    Arguments = "tcpip 5555",
+                                    UseShellExecute = false,
+                                    CreateNoWindow = true
+                                });
+                                tcpipProc?.WaitForExit(2000);
+                            }
+                            catch { }
+                        }
+
+                        return ok;
                     }
                     catch
                     {
