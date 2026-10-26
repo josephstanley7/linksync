@@ -30,7 +30,9 @@ LinkSync is an invisible, instant wireless cable between your **Samsung Galaxy A
 
 ### B. Opening LinkSync:
 1. Double-click the **LinkSync** icon on your Desktop or Start Menu.
-2. The sleek dark window titled **"LinkSync - Native Phone-to-PC Bridge"** appears on your screen with zero terminal windows.
+2. The sleek dark window titled **"LinkSync"** opens cleanly into the **Continuity Welcome Screen** with zero tabs forced open.
+3. You can click any top category (**Messages**, **Calls**, **Contacts**, **Photos**, or **Clipboard**) whenever you want to work with that feature.
+4. **Instant Power Tools Access:** You can directly launch the **Image Annotator** or **Video Suite & GIF Maker** from anywhere using the top-right header buttons, the Photos gallery toolbar, or the 4 quick launch cards on the welcome screen.
 
 ---
 
@@ -43,12 +45,13 @@ LinkSync automatically searches both your **Wi-Fi network** and your **USB cable
 2. **Mobile Hotspot (Outside the House):** Turn on your Samsung phone's Mobile Hotspot and connect your laptop to it. LinkSync automatically detects your phone as the network gateway and connects in milliseconds—even though Android normally blocks general broadcasts!
 3. Open the **LinkSync app** on your Samsung phone.
 4. LinkSync automatically finds your laptop. Within 1 to 2 seconds, your phone and laptop will connect!
-5. The top card will turn green: **"🟢 Connected: HP EliteBook Folio 9470M"** and **"Connected via Wi-Fi"**.
+5. **Clean Single-Card Display:** Your laptop identity appears cleanly once at the top in the Hero deck (**"HP EliteBook Folio 9470M"** and **"Connected via Local Wi-Fi"**) with battery level and a sleek **Disconnect** button.
+6. **Immediate Notifications:** The moment your phone connects, all active notifications on your phone (WhatsApp, Telegram, Calls, Banking alerts) are immediately loaded into the laptop's left notification feed without having to wait for a new notification to arrive!
 
 ### What If Multiple Laptops Are Nearby?
 If several people or family members have LinkSync installed on their laptops nearby:
 * **First Time / Single PC:** If only your laptop is on, LinkSync connects to it automatically and remembers its unique ID (`PC-XXXXXXXX`).
-* **Switching Computers:** Tap the button titled **"💻 Available Computers"** right under the status card on your phone. A menu pops up showing every active laptop on the network. Tap the computer you want to connect to, and LinkSync instantly switches to it!
+* **Switching Computers:** Tap the button titled **"💻 Available Computers"** right in the top Hero card on your phone. A menu pops up showing every active laptop on the network. Tap the computer you want to connect to, and LinkSync instantly switches to it!
 
 ### Method B: Over a USB Cable (Guaranteed Anywhere)
 1. Plug your Samsung Galaxy A17 into your laptop using your standard USB charging cable.

@@ -35,6 +35,10 @@
   * Desktop 3-Column Fluent Hub (Top Tabs, Left Rail Notifications) => 100% DONE ✅
   * 1-Tap Remote PC Lock WorkStation (OpLockPc 0x0051) ============> 100% DONE ✅
   * Contextual Power Tools (Photos Toolbar & Header Quick-Actions) => 100% DONE ✅
+  * Neutral Launch State (ViewWelcome, No Tab Forced on Startup) ==> 100% DONE ✅
+  * Direct Access to Image Annotator & Video Suite (Header & Rail) => 100% DONE ✅
+  * Immediate Active Notification Hydration (OpNotificationReq) ==> 100% DONE ✅
+  * Mobile De-cluttering (Settings Icon, Single Hero, Clean Back) => 100% DONE ✅
 [ Phase 6: Drag-and-Drop Push & Installer  ] ====================> PENDING ⏳
 ```
 

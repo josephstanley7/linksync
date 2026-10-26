@@ -477,6 +477,8 @@ class ForegroundSyncService : Service() {
                         lastSyncMessage = "Paired with $connectedDesktopName"
                     )
                     updateNotification("Connected to $connectedDesktopName")
+                    // Immediately sync all active phone notifications to desktop upon connection
+                    LinkSyncNotificationListener.syncAllActiveNotifications()
                 } catch (e: Exception) {
                     Log.w("LinkSyncService", "Failed to parse handshake response", e)
                 }
@@ -585,6 +587,11 @@ class ForegroundSyncService : Service() {
                         Log.e("LinkSyncService", "Error handling OP_CALL_ACTION: ${e.message}")
                     }
                 }
+            }
+
+            LinkSyncProtocol.OP_NOTIFICATION_REQ -> {
+                Log.i("LinkSyncService", "Received OP_NOTIFICATION_REQ. Syncing active phone notifications...")
+                LinkSyncNotificationListener.syncAllActiveNotifications()
             }
         }
     }

@@ -7,9 +7,51 @@ import android.util.Log
 
 class LinkSyncNotificationListener : NotificationListenerService() {
 
+    companion object {
+        @Volatile
+        var instance: LinkSyncNotificationListener? = null
+            private set
+
+        fun syncAllActiveNotifications() {
+            instance?.syncActiveNotifications()
+        }
+    }
+
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        instance = this
+        Log.i("LinkSyncNotif", "Notification listener connected to Android system.")
+        syncActiveNotifications()
+    }
+
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+        if (instance == this) instance = null
+        Log.w("LinkSyncNotif", "Notification listener disconnected from Android system.")
+    }
+
+    fun syncActiveNotifications() {
+        try {
+            val active = activeNotifications
+            if (active.isNullOrEmpty()) {
+                Log.i("LinkSyncNotif", "No active notifications present on device.")
+                return
+            }
+            Log.i("LinkSyncNotif", "Found ${active.size} active notifications. Forwarding to desktop...")
+            for (sbn in active) {
+                processAndSendNotification(sbn)
+            }
+        } catch (e: Exception) {
+            Log.e("LinkSyncNotif", "Error querying active notifications: ${e.message}")
+        }
+    }
+
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         if (sbn == null) return
+        processAndSendNotification(sbn)
+    }
 
+    private fun processAndSendNotification(sbn: StatusBarNotification) {
         val pkgName = sbn.packageName ?: return
         // Ignore self notifications to prevent loops
         if (pkgName == packageName) return
@@ -43,7 +85,7 @@ class LinkSyncNotificationListener : NotificationListenerService() {
         val timestamp = if (sbn.postTime > 0) sbn.postTime else System.currentTimeMillis()
         val key = sbn.key ?: "${pkgName}_${sbn.id}"
 
-        Log.i("LinkSyncNotif", "Intercepted notification: [$appName] $title - ${text.take(40)}")
+        Log.i("LinkSyncNotif", "Forwarding notification: [$appName] $title - ${text.take(40)}")
         ForegroundSyncService.sendPhoneNotification(
             key = key,
             packageName = pkgName,
@@ -55,16 +97,6 @@ class LinkSyncNotificationListener : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
-        // Can be used in future for auto-dismiss sync
-    }
-
-    override fun onListenerConnected() {
-        super.onListenerConnected()
-        Log.i("LinkSyncNotif", "Notification listener connected to Android system.")
-    }
-
-    override fun onListenerDisconnected() {
-        super.onListenerDisconnected()
-        Log.w("LinkSyncNotif", "Notification listener disconnected from Android system.")
+        // Reserved for dismissal sync
     }
 }

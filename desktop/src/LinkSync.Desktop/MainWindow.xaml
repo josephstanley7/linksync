@@ -240,10 +240,22 @@
                             <TextBlock Text="&#xE714;" FontFamily="{StaticResource FontIcons}" FontSize="15" Foreground="{StaticResource BrushDanger}"/>
                         </Button>
 
+                        <!-- Annotator Icon -->
+                        <Button Name="BtnCompactAnnotator" Style="{StaticResource HeaderIconButton}" Margin="0,0,0,10"
+                                ToolTip="Image Annotator (Arrows, step badges, blur &amp; frames)" Click="BtnOpenAnnotator_Click">
+                            <TextBlock Text="&#xE790;" FontFamily="{StaticResource FontIcons}" FontSize="15" Foreground="{StaticResource BrushAccentLight}"/>
+                        </Button>
+
+                        <!-- Video Suite & GIF Icon -->
+                        <Button Name="BtnCompactVideoSuite" Style="{StaticResource HeaderIconButton}" Margin="0,0,0,10"
+                                ToolTip="Video Suite &amp; Animated GIF Maker" Click="BtnOpenVideoSuite_Click">
+                            <TextBlock Text="&#xEC15;" FontFamily="{StaticResource FontIcons}" FontSize="15" Foreground="#C084FC"/>
+                        </Button>
+
                         <!-- Captures Folder -->
                         <Button Name="BtnCompactFolder" Style="{StaticResource HeaderIconButton}" Margin="0,0,0,10"
                                 ToolTip="Open Captures Folder" Click="BtnOpenFolder_Click">
-                            <TextBlock Text="&#xED25;" FontFamily="{StaticResource FontIcons}" FontSize="15" Foreground="{StaticResource BrushAccentLight}"/>
+                            <TextBlock Text="&#xED25;" FontFamily="{StaticResource FontIcons}" FontSize="15" Foreground="{StaticResource BrushWarning}"/>
                         </Button>
                     </StackPanel>
 
@@ -313,6 +325,14 @@
 
                     <!-- Top Right Quick Utility Actions -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Name="BtnHeaderAnnotator" Style="{StaticResource HeaderIconButton}" ToolTip="Image Annotator (Arrows, step badges, blur &amp; phone frame)" Margin="0,0,6,0" Click="BtnOpenAnnotator_Click">
+                            <TextBlock Text="&#xE790;" FontFamily="{StaticResource FontIcons}" FontSize="14" Foreground="{StaticResource BrushAccentLight}"/>
+                        </Button>
+
+                        <Button Name="BtnHeaderVideoSuite" Style="{StaticResource HeaderIconButton}" ToolTip="Video Suite &amp; Animated GIF Maker (Keyframe slicer &amp; GIF)" Margin="0,0,6,0" Click="BtnOpenVideoSuite_Click">
+                            <TextBlock Text="&#xEC15;" FontFamily="{StaticResource FontIcons}" FontSize="14" Foreground="#C084FC"/>
+                        </Button>
+
                         <Button Name="BtnHeaderSnip" Style="{StaticResource HeaderIconButton}" ToolTip="Screen Snip (Region capture)" Margin="0,0,6,0" Click="BtnQuickSnip_Click">
                             <TextBlock Text="&#xE7C5;" FontFamily="{StaticResource FontIcons}" FontSize="14" Foreground="{StaticResource BrushSuccess}"/>
                         </Button>
@@ -356,6 +376,117 @@
                     <Ellipse Name="DotStatus"/>
                     <TextBlock Name="TxtDeviceName"/>
                     <TextBlock Name="TxtDeviceSub"/>
+                </Grid>
+
+                <!-- ==================================================== -->
+                <!-- DEFAULT LAUNCH VIEW: WELCOME & CONTINUITY CANVAS     -->
+                <!-- ==================================================== -->
+                <Grid Name="ViewWelcome" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Top Welcome Banner -->
+                    <Border Grid.Row="0" Style="{StaticResource HeroContinuityDeck}" Margin="0,0,0,20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12" Background="#141B2D" 
+                                    BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" Margin="0,0,18,0" VerticalAlignment="Center">
+                                <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="28" 
+                                           Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="LinkSync Continuity" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock Text="Select a category from the top navigation bar to open Messages, Calls, Contacts, Photos, or Clipboard." FontSize="13" Foreground="{StaticResource BrushTextSecondary}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Quick Tools Launch Matrix -->
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Quick Power Tools" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,12"/>
+
+                        <UniformGrid Grid.Row="1" Columns="2" Rows="2" VerticalAlignment="Top">
+                            <!-- Tool 1: Image Annotator -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="0,0,10,12" Height="100" Padding="16" HorizontalContentAlignment="Left" Click="BtnOpenAnnotator_Click" Cursor="Hand">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="8" Background="#102A45" Margin="0,0,14,0" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE790;" FontFamily="{StaticResource FontIcons}" FontSize="20" Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Image Annotator" FontSize="14" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                        <TextBlock Text="Add arrows, numbered step badges, blur redaction, and Samsung phone mockups to screenshots." FontSize="11" Foreground="{StaticResource BrushTextMuted}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+
+                            <!-- Tool 2: Video Suite & GIF -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="10,0,0,12" Height="100" Padding="16" HorizontalContentAlignment="Left" Click="BtnOpenVideoSuite_Click" Cursor="Hand">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="8" Background="#261233" Margin="0,0,14,0" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xEC15;" FontFamily="{StaticResource FontIcons}" FontSize="20" Foreground="#C084FC" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Video Suite &amp; GIF Maker" FontSize="14" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                        <TextBlock Text="Lossless keyframe video trimming and high-quality 2-pass Lanczos animated GIF generation." FontSize="11" Foreground="{StaticResource BrushTextMuted}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+
+                            <!-- Tool 3: Screen Mirror -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="0,0,10,0" Height="100" Padding="16" HorizontalContentAlignment="Left" Click="BtnStartMirror_Click" Cursor="Hand">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="8" Background="#162B23" Margin="0,0,14,0" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="20" Foreground="{StaticResource BrushSuccess}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Phone Mirror (60 FPS)" FontSize="14" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                        <TextBlock Text="Ultra-low latency hardware stream with remote mouse click control and laptop keyboard typing." FontSize="11" Foreground="{StaticResource BrushTextMuted}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+
+                            <!-- Tool 4: Captures Folder -->
+                            <Button Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" Height="100" Padding="16" HorizontalContentAlignment="Left" Click="BtnOpenFolder_Click" Cursor="Hand">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="8" Background="#261E14" Margin="0,0,14,0" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xED25;" FontFamily="{StaticResource FontIcons}" FontSize="20" Foreground="{StaticResource BrushWarning}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Open Captures Folder" FontSize="14" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                        <TextBlock Text="Direct access to synced screenshots, annotated PNGs, and screen recording MP4 files." FontSize="11" Foreground="{StaticResource BrushTextMuted}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </UniformGrid>
+                    </Grid>
                 </Grid>
 
                 <!-- ==================================================== -->
@@ -941,6 +1072,8 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Synced Screenshots &amp; Photos Gallery" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="✏️ Image Annotator" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnOpenAnnotator_Click" ToolTip="Annotate image with arrows, steps, blur redaction &amp; phone frame"/>
+                        <Button Content="🎬 Video Suite &amp; GIF" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnOpenVideoSuite_Click" ToolTip="Lossless video trimming and animated GIF maker"/>
                         <Button Content="Snip Region" Style="{StaticResource PrimaryButton}" Background="{StaticResource BrushSuccess}" Margin="0,0,6,0" Click="BtnQuickSnip_Click"/>
                         <Button Content="Fullscreen" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnFullscreenSnip_Click"/>
                         <Button Content="Record Screen" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnQuickRecord_Click"/>

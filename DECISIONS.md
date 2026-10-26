@@ -490,6 +490,38 @@
      - Strict regex scans for 2FA OTP verification codes (`\b\d{4,8}\b` and `G-\d{6}`) to trigger `OtpToastWindow` with 1-click clipboard copy.
 * **Consequences:** Eliminates all UI duplication, establishes clean spatial hierarchy, allows seamless sidebar collapse/expand, and provides true universal notification sync for all apps without cloud relay.
 
+---
+
+### ADR-029: Neutral Launch State, Immediate Notification Hydration & Mobile Ergonomic De-cluttering
+* **Status:** Accepted & Implemented ✅
+* **Context:**  
+  1. *Desktop Launch State:* Previously, `MainWindow` unconditionally selected the Messages tab (`NavTab.Messages`) upon opening, which forced user context into SMS immediately instead of presenting a clean continuity overview.
+  2. *Direct Tool Discoverability:* The advanced media tools (Image Annotator and Video Suite & GIF Maker) were not directly accessible from the primary interface chrome or top header.
+  3. *Notification Shade Hydration on Connect:* The desktop notification feed previously waited for *new* incoming notifications before displaying anything. When connecting a phone that already has active notifications in its Android shade, the PC notification area remained empty until a new notification arrived.
+  4. *Mobile Redundancy & Ergonomics:* The mobile UI displayed the connected PC card twice (once in the top Hero deck and again at the bottom of the scroll view), and contained a 4-tab bottom navigation bar that cramped the vertical viewport and competed with the natural scroll-based companion experience. The top header also featured a non-interactive "LS" avatar placeholder.
+* **Decision:**
+  1. **Neutral Desktop Launch State (`NavTab.None` & `ViewWelcome`):**
+     - LinkSync launches with `NavTab.None`, leaving all top navigation tabs unselected until clicked by the user.
+     - Displays `ViewWelcome`: a centered Phone Link continuity surface with connection confirmation, category guidance, and 4 quick-action launch cards for Image Annotator, Video Suite, Phone Mirror, and Captures Folder.
+  2. **Direct Universal Access to Media Power Tools:**
+     - Added dedicated icon buttons in the top header utility bar: `BtnHeaderAnnotator` (`&#xE790;`) and `BtnHeaderVideoSuite` (`&#xEC15;`).
+     - Added direct buttons in the Photos & Screenshots gallery toolbar: `[ ✏️ Image Annotator ]` and `[ 🎬 Video Suite & GIF ]`.
+     - Added shortcut buttons in the collapsed vertical sidebar rail: `BtnCompactAnnotator` and `BtnCompactVideoSuite`.
+  3. **Immediate Active Notification Hydration (`OP_NOTIFICATION_REQ` 0x0061):**
+     - `LinkSyncNotificationListener` retains an active service instance and exposes `syncAllActiveNotifications()`.
+     - Reads all currently active notifications from the Android notification shade via `activeNotifications`.
+     - Automatically executes upon handshake confirmation on Android and in response to `OP_NOTIFICATION_REQ` (`0x0061`) requested by the desktop upon `OnDeviceConnected`.
+     - Deduplicates and streams existing WhatsApp, Telegram, calls, and system notifications into the desktop sidebar feed within milliseconds of connection.
+     - Protects against historical toast spam by only displaying pop-up OTP toasts for notifications with timestamps within the last 2 minutes.
+  4. **Mobile Single-Deck Ergonomics & Settings Navigation:**
+     - Removed `BottomNavigationView` from `activity_main.xml`, allowing `contentFrame` to fill the full screen height.
+     - Replaced the placeholder "LS" avatar in the top header with a circular Settings icon button (`btnHeaderSettings`) that navigates directly to `layoutSettings`.
+     - Integrated `btnConnect` ("Disconnect") and `btnSelectPc` ("Available Computers") directly into the top Hero deck under live hardware telemetry.
+     - Completely removed the redundant bottom connection card (`cardConnection`), ensuring the connected computer appears only once.
+     - Added header back buttons (`btnBackClipboard`, `btnBackScreenshots`, `btnBackSettings`) and wired Android's `onBackPressedDispatcher` to smoothly return to the main dashboard from any subscreen.
+* **Consequences:** Instantaneous notification availability upon connecting, clean zero-clutter mobile experience with single-card identity, and direct 1-click access to all media editing features.
+
+
 
 
 

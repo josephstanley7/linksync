@@ -132,6 +132,7 @@ All frames exchanged between phone and desktop over TCP use an 8-byte big-endian
 | `80` | `0x0050` | `OP_DEVICE_STATUS` | JSON with battery percentage, charging state, and Wi-Fi dBm. |
 | `81` | `0x0051` | `OP_LOCK_PC` | Empty payload. Triggers remote Windows workstation lock (`LockWorkStation`). |
 | `96` | `0x0060` | `OP_NOTIFICATION` | JSON with `key`, `packageName`, `appName`, `title`, `text`, and `timestamp`. |
+| `97` | `0x0061` | `OP_NOTIFICATION_REQ` | Empty payload. Requests immediate dump of all active notifications on phone. |
 
 ---
 

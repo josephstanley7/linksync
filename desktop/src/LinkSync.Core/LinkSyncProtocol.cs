@@ -31,6 +31,7 @@ namespace LinkSync.Core
         public const ushort OpDeviceStatus = 0x0050;
         public const ushort OpLockPc = 0x0051;
         public const ushort OpNotification = 0x0060;
+        public const ushort OpNotificationReq = 0x0061;
 
         public record Frame(ushort OpCode, byte[] Payload);
         public record PhoneNotificationPayload(string Key, string PackageName, string AppName, string Title, string Text, long Timestamp);

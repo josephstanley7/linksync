@@ -97,7 +97,7 @@ namespace LinkSync.Desktop
             {
                 App.LogStartup($"Loaded event entered (StartMinimized={App.StartMinimized})");
                 InitializeServices();
-                SwitchTab(NavTab.Messages);
+                SwitchTab(NavTab.None);
                 App.LogStartup("Loaded event completed");
             };
 
@@ -381,6 +381,7 @@ namespace LinkSync.Desktop
 
                 _ = _server.RequestContactsAsync();
                 _ = _server.RequestSmsListAsync();
+                _ = _server.RequestNotificationsAsync();
             });
         }
 
@@ -795,10 +796,11 @@ namespace LinkSync.Desktop
             }
         }
 
-        public enum NavTab { Overview, Messages, Calls, Contacts, Photos, Clipboard, Video, Annotator, Mirror, Settings }
+        public enum NavTab { None, Overview, Messages, Calls, Contacts, Photos, Clipboard, Video, Annotator, Mirror, Settings }
 
         private void SwitchTab(NavTab tab)
         {
+            ViewWelcome.Visibility = tab == NavTab.None ? Visibility.Visible : Visibility.Collapsed;
             ViewOverview.Visibility = tab == NavTab.Overview ? Visibility.Visible : Visibility.Collapsed;
             ViewMessages.Visibility = tab == NavTab.Messages ? Visibility.Visible : Visibility.Collapsed;
             ViewCalls.Visibility = tab == NavTab.Calls ? Visibility.Visible : Visibility.Collapsed;
@@ -823,6 +825,7 @@ namespace LinkSync.Desktop
 
             TxtPageTitle.Text = tab switch
             {
+                NavTab.None => "LinkSync Continuity",
                 NavTab.Overview => "Overview & Hardware Continuity",
                 NavTab.Messages => "SMS & Message Threads",
                 NavTab.Calls => "Phone Calls & Digital Dialer",
@@ -838,6 +841,7 @@ namespace LinkSync.Desktop
 
             TxtHeaderSub.Text = tab switch
             {
+                NavTab.None => "Connected to Samsung Galaxy A17 • Select a category above",
                 NavTab.Overview => "Direct peer-to-peer connection • QuickSync acceleration enabled",
                 NavTab.Messages => "Read, compose, and send text messages through your Galaxy A17 SIM",
                 NavTab.Calls => "Place calls, view active call status, and hang up remotely",
@@ -928,7 +932,10 @@ namespace LinkSync.Desktop
                 Match otpMatch = Regex.Match(combined, @"\b\d{4,8}\b|G-\d{6}");
                 string otpCode = otpMatch.Success ? otpMatch.Value : string.Empty;
 
-                if (!string.IsNullOrEmpty(otpCode))
+                long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                bool isRecent = notif.Timestamp <= 0 || (nowMs - notif.Timestamp) < 120000;
+
+                if (!string.IsNullOrEmpty(otpCode) && isRecent)
                 {
                     try
                     {

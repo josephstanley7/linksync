@@ -272,53 +272,44 @@ class MainActivity : AppCompatActivity() {
             startActivity(promptIntent)
         }
 
+        binding.btnHeaderSettings.setOnClickListener {
+            showScreen(R.id.layoutSettings)
+        }
+
         binding.btnRecentSeeMore.setOnClickListener {
-            binding.bottomNavigation.selectedItemId = R.id.nav_screenshots
+            showScreen(R.id.layoutScreenshots)
         }
 
         binding.cardNavReceived.setOnClickListener {
-            binding.bottomNavigation.selectedItemId = R.id.nav_screenshots
+            showScreen(R.id.layoutScreenshots)
         }
 
         binding.cardNavClipboard.setOnClickListener {
-            binding.bottomNavigation.selectedItemId = R.id.nav_clipboard
+            showScreen(R.id.layoutClipboard)
         }
 
-        // Bottom Navigation Tab Switching
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_connect -> {
-                    binding.layoutConnect.visibility = View.VISIBLE
-                    binding.layoutClipboard.visibility = View.GONE
-                    binding.layoutScreenshots.visibility = View.GONE
-                    binding.layoutSettings.visibility = View.GONE
-                    true
-                }
-                R.id.nav_clipboard -> {
-                    binding.layoutConnect.visibility = View.GONE
-                    binding.layoutClipboard.visibility = View.VISIBLE
-                    binding.layoutScreenshots.visibility = View.GONE
-                    binding.layoutSettings.visibility = View.GONE
-                    true
-                }
-                R.id.nav_screenshots -> {
-                    binding.layoutConnect.visibility = View.GONE
-                    binding.layoutClipboard.visibility = View.GONE
-                    binding.layoutScreenshots.visibility = View.VISIBLE
-                    binding.layoutSettings.visibility = View.GONE
-                    loadPhoneMediaFiles()
-                    true
-                }
-                R.id.nav_settings -> {
-                    binding.layoutConnect.visibility = View.GONE
-                    binding.layoutClipboard.visibility = View.GONE
-                    binding.layoutScreenshots.visibility = View.GONE
-                    binding.layoutSettings.visibility = View.VISIBLE
-                    true
-                }
-                else -> false
-            }
+        binding.btnBackClipboard.setOnClickListener {
+            showScreen(R.id.layoutConnect)
         }
+
+        binding.btnBackScreenshots.setOnClickListener {
+            showScreen(R.id.layoutConnect)
+        }
+
+        binding.btnBackSettings.setOnClickListener {
+            showScreen(R.id.layoutConnect)
+        }
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.layoutConnect.visibility != View.VISIBLE) {
+                    showScreen(R.id.layoutConnect)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
 
         binding.btnClearClipboard.setOnClickListener {
             ForegroundSyncService.clearHistory()
@@ -408,6 +399,16 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         } catch (_: Exception) {}
+    }
+
+    private fun showScreen(screenId: Int) {
+        binding.layoutConnect.visibility = if (screenId == R.id.layoutConnect) View.VISIBLE else View.GONE
+        binding.layoutClipboard.visibility = if (screenId == R.id.layoutClipboard) View.VISIBLE else View.GONE
+        binding.layoutScreenshots.visibility = if (screenId == R.id.layoutScreenshots) View.VISIBLE else View.GONE
+        binding.layoutSettings.visibility = if (screenId == R.id.layoutSettings) View.VISIBLE else View.GONE
+        if (screenId == R.id.layoutScreenshots) {
+            loadPhoneMediaFiles()
+        }
     }
 
     private fun showAvailableComputersDialog() {

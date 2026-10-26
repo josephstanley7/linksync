@@ -322,6 +322,15 @@ namespace LinkSync.Desktop.Services
             }
         }
 
+        public async Task RequestNotificationsAsync()
+        {
+            var stream = _currentStream;
+            if (stream != null && IsClientConnected)
+            {
+                await LinkSyncProtocol.WriteFrameAsync(stream, LinkSyncProtocol.OpNotificationReq, Array.Empty<byte>());
+            }
+        }
+
         public async Task RequestSmsListAsync(int limit = 100)
         {
             var stream = _currentStream;
