@@ -123,6 +123,33 @@ class ForegroundSyncService : Service() {
             }
         }
 
+        fun sendPhoneNotification(key: String, packageName: String, appName: String, title: String, text: String, timestamp: Long) {
+            activeInstance?.get()?.let { service ->
+                service.scope.launch(Dispatchers.IO) {
+                    service.socket?.let { s ->
+                        try {
+                            val obj = JSONObject().apply {
+                                put("key", key)
+                                put("packageName", packageName)
+                                put("appName", appName)
+                                put("title", title)
+                                put("text", text)
+                                put("timestamp", timestamp)
+                            }
+                            LinkSyncProtocol.writeFrame(
+                                s.getOutputStream(),
+                                LinkSyncProtocol.OP_NOTIFICATION,
+                                obj.toString().toByteArray(StandardCharsets.UTF_8)
+                            )
+                            Log.i("LinkSyncService", "Forwarded notification from $appName: '$title'")
+                        } catch (e: Exception) {
+                            Log.e("LinkSyncService", "Failed to forward notification: ${e.message}")
+                        }
+                    }
+                }
+            }
+        }
+
         fun sendClipboardDirect(text: String) {
             activeInstance?.get()?.sendClipboardInternal(text)
         }

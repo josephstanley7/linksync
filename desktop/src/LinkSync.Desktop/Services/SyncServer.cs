@@ -29,6 +29,7 @@ namespace LinkSync.Desktop.Services
         public event Action<IncomingSmsNotification>? SmsReceived;
         public event Action<CallStateNotification>? CallStateChanged;
         public event Action? LockPcRequested;
+        public event Action<LinkSyncProtocol.PhoneNotificationPayload>? PhoneNotificationReceived;
 
         public bool IsClientConnected => _currentClient?.Connected == true;
         public string SaveDirectory { get; set; }
@@ -200,6 +201,22 @@ namespace LinkSync.Desktop.Services
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"[SyncServer] Error handling lock PC: {ex.Message}");
+                            }
+                            break;
+
+                        case LinkSyncProtocol.OpNotification:
+                            try
+                            {
+                                string notifJson = Encoding.UTF8.GetString(frame.Payload);
+                                var notif = JsonSerializer.Deserialize<LinkSyncProtocol.PhoneNotificationPayload>(notifJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (notif != null)
+                                {
+                                    PhoneNotificationReceived?.Invoke(notif);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[SyncServer] Error parsing phone notification: {ex.Message}");
                             }
                             break;
                     }

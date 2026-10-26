@@ -30,8 +30,10 @@ namespace LinkSync.Core
         public const ushort OpCallState = 0x0047;
         public const ushort OpDeviceStatus = 0x0050;
         public const ushort OpLockPc = 0x0051;
+        public const ushort OpNotification = 0x0060;
 
         public record Frame(ushort OpCode, byte[] Payload);
+        public record PhoneNotificationPayload(string Key, string PackageName, string AppName, string Title, string Text, long Timestamp);
 
         public static async Task WriteFrameAsync(Stream stream, ushort opCode, byte[] payload, CancellationToken cancellationToken = default)
         {

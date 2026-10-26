@@ -461,6 +461,35 @@
      - Desktop `SyncServer` receives `OpLockPc` and calls native Win32 `user32.dll!LockWorkStation()`.
 * **Consequences:** LinkSync achieves genuine big-tech grade visual craft and ergonomic cohesion on both Windows 10 and Android 13+, while maintaining strict < 40 MB idle RAM limits and zero cloud dependencies.
 
+---
+
+### ADR-028: Full-Height Collapsible Sidebar, Continuous Header & Universal Notification Listener
+* **Status:** Accepted & Implemented ✅
+* **Context:**  
+  1. *Sidebar & Header Hierarchy:* The sidebar was previously placed underneath a window-wide header, breaking the standard desktop continuity layout (such as Phone Link or macOS Finder/Mail) where the sidebar spans from the very top to the bottom of the window.
+  2. *Collapsible Navigation Rail:* Users need the ability to collapse the sidebar when working on wide message threads, photo editing, or contact lists, freeing up horizontal screen width while retaining quick-access icon shortcuts.
+  3. *Elimination of Duplicated Toolbars:* Redundant subheader strips placed above tab views duplicated buttons (e.g. Folder, Snip, Record, Mirror) that already existed in tab-specific toolbars.
+  4. *Universal Notifications (Beyond SMS):* Users need to see ALL notifications received on their Android phone (WhatsApp, Telegram, Gmail, Instagram, Twitter/X, Missed Calls, Banking OTPs, System alerts) in real-time on PC, with contextual actions (`[ Reply ]`, `[ Call Back ]`, `[ Copy Code ]`, `[ View ]`).
+* **Decision:**
+  1. **Structural Spatial Restructure:**
+     - The root grid establishes Column 0 (`ColSidebar`, Width `280` or `56` when collapsed) and Column 1 (`*`).
+     - Sidebar sits in Column 0 spanning the full height from the top edge to the bottom edge of the window.
+     - Column 1 contains Row 0 (52px Header) and Row 1 (Tab Content). The Header starts from the right edge of the sidebar to the right edge of the app.
+  2. **Collapsible Rail Mechanics:**
+     - Added hamburger toggle button `BtnToggleSidebar` (`&#xE700;`).
+     - When expanded (280px): displays the device frame card, battery/transport badges, and scrollable notification feed with badge counter and "Clear all".
+     - When collapsed (56px): smoothly adjusts column width to 56px and displays a sleek vertical rail of centered icon buttons with tooltips (`BtnCompactMirror` with status dot, `BtnCompactNotif` with unread count badge, `BtnCompactSnip`, `BtnCompactRecord`, `BtnCompactFolder`, and `BtnCompactSettings`).
+  3. **Header Clean-Up & Subheader De-duplication:**
+     - Removed the brand logo and the wide yellow USB warning pill from the header; device status is presented contextually in the sidebar device card.
+     - Removed the redundant subheader strip. Contextual toolbars (such as in Photos: Snip Region, Fullscreen, Record Screen, Open Folder) now serve as the single source of truth.
+  4. **Universal Android Notification Pipeline (`OP_NOTIFICATION` 0x0060):**
+     - Mobile registers `LinkSyncNotificationListener` extending Android's `NotificationListenerService`.
+     - Intercepts all incoming notifications, resolves app names, titles, and text, and forwards them via `OP_NOTIFICATION` (`0x0060`).
+     - Mobile prompts for notification access via `ACTION_NOTIFICATION_LISTENER_SETTINGS` on initial launch.
+     - Desktop maps application packages to Segoe MDL2 vector glyphs and colors (WhatsApp green, Calls amber, Mail blue, Social pink, Security yellow).
+     - Strict regex scans for 2FA OTP verification codes (`\b\d{4,8}\b` and `G-\d{6}`) to trigger `OtpToastWindow` with 1-click clipboard copy.
+* **Consequences:** Eliminates all UI duplication, establishes clean spatial hierarchy, allows seamless sidebar collapse/expand, and provides true universal notification sync for all apps without cloud relay.
+
 
 
 

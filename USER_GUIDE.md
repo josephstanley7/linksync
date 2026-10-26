@@ -374,6 +374,35 @@ LinkSync brings full communication hub capabilities directly to your laptop dash
 
 ---
 
+## Step 10: Full-Height Collapsible Sidebar & Universal Phone Notifications (All Apps)
+
+LinkSync's desktop interface is organized into a clean, modern spatial hierarchy designed like Apple and Microsoft desktop platforms:
+
+### A. The Collapsible Left Sidebar (Frees Up Full Screen Width):
+* **Full-Height Layout:** The sidebar spans continuously from the very top to the bottom edge of the window.
+* **1-Click Collapse / Expand:** Click the hamburger menu icon (`☰`) at the top of the sidebar.
+  * When **collapsed**, the sidebar shrinks to a slim **56px icon rail**, giving maximum horizontal room for long text conversations, photos, and spreadsheets.
+  * The collapsed rail provides quick icon shortcuts:
+    * 📱 **Mirror 60 FPS** (with live green/amber connection dot).
+    * 🔔 **Notification Bell** with unread count badge.
+    * 📸 **Screen Snip**.
+    * 🎥 **Screen Record**.
+    * 📂 **Captures Folder**.
+    * ⚙️ **Settings**.
+  * Click the hamburger or bell icon anytime to restore the full **280px sidebar**!
+
+### B. Universal Phone Notifications (WhatsApp, Telegram, Gmail, Banking, & More):
+* LinkSync forwards **all notifications** received on your phone directly to your laptop in real-time—not just SMS!
+* **Color-Coded App Glyphs:**
+  * 🟢 **WhatsApp / Telegram / Chat:** Green chat bubble with inline **`[ Reply ]`** button.
+  * 🟡 **Calls / Voicemail:** Amber phone icon with inline **`[ Call Back ]`** button.
+  * 🔵 **Gmail / Outlook:** Blue mail icon.
+  * 🟡 **Bank & Authenticator Verification Codes:** Gold shield badge with 1-click **`[ Copy Code ]`** button.
+  * 🟣 **Social (Instagram, Twitter/X):** Purple social glyph with **`[ View ]`** button that opens your phone mirror in 1 click.
+* **One-Click Clear:** Click **"Clear all"** at the top of the notification feed anytime to dismiss all cards.
+
+---
+
 ## Frequently Asked Questions & Troubleshooting (FAQ)
 
 #### Q: The laptop says "Searching for Phone" and won't turn green. What should I do?

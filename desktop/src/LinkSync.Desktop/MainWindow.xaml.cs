@@ -12,8 +12,10 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Text.RegularExpressions;
 using LinkSync.Core;
 using LinkSync.Desktop.Services;
+using LinkSync.Desktop.Views;
 
 namespace LinkSync.Desktop
 {
@@ -78,6 +80,7 @@ namespace LinkSync.Desktop
             _server.SmsReceived += OnSmsReceived;
             _server.CallStateChanged += OnCallStateChanged;
             _server.LockPcRequested += () => Dispatcher.Invoke(() => LockWorkStation());
+            _server.PhoneNotificationReceived += OnPhoneNotificationReceived;
 
             _clipboardWatcher = new Win32ClipboardWatcher();
             _clipboardWatcher.ClipboardTextChanged += OnLocalClipboardChanged;
@@ -372,6 +375,7 @@ namespace LinkSync.Desktop
                 TxtSidebarDeviceName.Text = $"{handshake.DeviceManufacturer} {handshake.DeviceName}";
                 TxtSidebarStatus.Text = "Connected & Syncing";
                 DotSidebarStatus.Fill = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+                DotCompactStatus.Fill = new SolidColorBrush(Color.FromRgb(16, 185, 129));
                 TxtSidebarBattery.Text = "Connected";
                 TxtSidebarNet.Text = "Wi-Fi / USB";
 
@@ -391,6 +395,7 @@ namespace LinkSync.Desktop
 
                 TxtSidebarStatus.Text = "Searching for Phone...";
                 DotSidebarStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11));
+                DotCompactStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11));
                 TxtSidebarBattery.Text = "Waiting";
                 TxtSidebarNet.Text = "Searching";
             });
@@ -408,18 +413,21 @@ namespace LinkSync.Desktop
                         DotStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11)); // Amber
                         TxtDeviceName.Text = "⚠️ USB Cable Detected: Please Unlock Phone";
                         TxtDeviceSub.Text = "Unlock your phone and tap 'Allow USB debugging' to start syncing.";
+                        TxtSidebarStatus.Text = "Unlock phone & tap Allow";
                         break;
 
                     case DevicePortStatus.ConnectedMtpOnly:
                         DotStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11)); // Amber
                         TxtDeviceName.Text = "⚠️ USB Cable Detected: File Transfer / Debugging Needed";
                         TxtDeviceSub.Text = "On your phone, enable File Transfer or USB Debugging in Settings.";
+                        TxtSidebarStatus.Text = "Enable USB Debugging";
                         break;
 
                     case DevicePortStatus.ConnectedAuthorized:
                         DotStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11)); // Amber
                         TxtDeviceName.Text = "Searching for Phone on Wi-Fi & USB...";
                         TxtDeviceSub.Text = "USB tunnel active (Port 54884). Waiting for phone app...";
+                        TxtSidebarStatus.Text = "USB active. Waiting...";
                         break;
 
                     case DevicePortStatus.NoDevice:
@@ -427,6 +435,7 @@ namespace LinkSync.Desktop
                         DotStatus.Fill = new SolidColorBrush(Color.FromRgb(245, 158, 11)); // Amber
                         TxtDeviceName.Text = "Searching for Phone on Wi-Fi & USB...";
                         TxtDeviceSub.Text = "Ensure phone is on same Wi-Fi network or plug in USB cable.";
+                        TxtSidebarStatus.Text = "Searching for Phone...";
                         break;
                 }
             });
@@ -487,6 +496,7 @@ namespace LinkSync.Desktop
                     AssociatedData = text
                 });
                 while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
+                UpdateNotificationBadgeCounts();
 
                 if (!IsVisible)
                 {
@@ -597,6 +607,7 @@ namespace LinkSync.Desktop
                     AssociatedData = savedPath
                 });
                 while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
+                UpdateNotificationBadgeCounts();
 
                 // Show notification in Windows System Tray!
                 if (isImage)
@@ -858,9 +869,153 @@ namespace LinkSync.Desktop
             btn.FontWeight = isActive ? FontWeights.Bold : FontWeights.SemiBold;
         }
 
+        private bool _isSidebarCollapsed = false;
+
+        private void BtnToggleSidebar_Click(object sender, RoutedEventArgs e)
+        {
+            _isSidebarCollapsed = !_isSidebarCollapsed;
+            ApplySidebarState();
+        }
+
+        private void BtnCompactNotif_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isSidebarCollapsed)
+            {
+                _isSidebarCollapsed = false;
+                ApplySidebarState();
+            }
+        }
+
+        private void ApplySidebarState()
+        {
+            if (_isSidebarCollapsed)
+            {
+                ColSidebar.Width = new GridLength(56);
+                PanelSidebarExpanded.Visibility = Visibility.Collapsed;
+                PanelSidebarCollapsed.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ColSidebar.Width = new GridLength(280);
+                PanelSidebarExpanded.Visibility = Visibility.Visible;
+                PanelSidebarCollapsed.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void UpdateNotificationBadgeCounts()
+        {
+            int count = Notifications.Count;
+            TxtNotifCount.Text = count > 0 ? $"({count})" : "";
+            TxtCompactNotifCount.Text = count > 99 ? "99+" : count.ToString();
+            BadgeCompactNotif.Visibility = count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         private void BtnClearNotifications_Click(object sender, RoutedEventArgs e)
         {
             Notifications.Clear();
+            UpdateNotificationBadgeCounts();
+        }
+
+        private void OnPhoneNotificationReceived(LinkSyncProtocol.PhoneNotificationPayload notif)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (string.IsNullOrWhiteSpace(notif.Title) && string.IsNullOrWhiteSpace(notif.Text))
+                    return;
+
+                // 1. Detect 2FA OTP verification code
+                string combined = $"{notif.Title} {notif.Text}";
+                Match otpMatch = Regex.Match(combined, @"\b\d{4,8}\b|G-\d{6}");
+                string otpCode = otpMatch.Success ? otpMatch.Value : string.Empty;
+
+                if (!string.IsNullOrEmpty(otpCode))
+                {
+                    try
+                    {
+                        var toast = new Views.OtpToastWindow(otpCode, notif.AppName, notif.Text);
+                        toast.Show();
+                    }
+                    catch { }
+                }
+
+                // 2. Resolve App Glyph and Color
+                string glyph = "\uEA8F"; // Default Bell
+                string color = "#38BDF8";
+                string actionLabel = "View";
+                string actionType = "view";
+                string data = notif.Title;
+
+                string pkg = (notif.PackageName ?? "").ToLowerInvariant();
+                if (pkg.Contains("whatsapp") || pkg.Contains("telegram") || pkg.Contains("signal") || pkg.Contains("mms") || pkg.Contains("messaging"))
+                {
+                    glyph = "\uE8BD";
+                    color = "#22C55E";
+                    actionLabel = "Reply";
+                    actionType = "reply";
+                }
+                else if (pkg.Contains("dialer") || pkg.Contains("telecom") || pkg.Contains("phone"))
+                {
+                    glyph = "\uE717";
+                    color = "#F59E0B";
+                    actionLabel = "Call";
+                    actionType = "call";
+                }
+                else if (pkg.Contains("mail") || pkg.Contains("outlook") || pkg.Contains("gmail"))
+                {
+                    glyph = "\uE715";
+                    color = "#3B82F6";
+                }
+                else if (pkg.Contains("instagram") || pkg.Contains("twitter") || pkg.Contains("facebook"))
+                {
+                    glyph = "\uE90A";
+                    color = "#EC4899";
+                }
+                else if (!string.IsNullOrEmpty(otpCode))
+                {
+                    glyph = "\uE8D7";
+                    color = "#EAB308";
+                    actionLabel = $"Copy {otpCode}";
+                    actionType = "copy";
+                    data = otpCode;
+                }
+
+                // 3. Remove existing notification with same Key
+                var existing = Notifications.FirstOrDefault(n => n.Id == notif.Key);
+                if (existing != null)
+                {
+                    Notifications.Remove(existing);
+                }
+
+                DateTime postTime = notif.Timestamp > 0 
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(notif.Timestamp).LocalDateTime 
+                    : DateTime.Now;
+
+                Notifications.Insert(0, new NotificationItemViewModel
+                {
+                    Id = notif.Key,
+                    AppName = string.IsNullOrWhiteSpace(notif.AppName) ? "Phone" : notif.AppName,
+                    AppIconGlyph = glyph,
+                    AppIconColor = color,
+                    Title = notif.Title,
+                    Body = notif.Text,
+                    TimestampText = postTime.ToString("HH:mm"),
+                    ActionLabel = actionLabel,
+                    ActionType = actionType,
+                    AssociatedData = data
+                });
+
+                while (Notifications.Count > 40)
+                {
+                    Notifications.RemoveAt(Notifications.Count - 1);
+                }
+
+                UpdateNotificationBadgeCounts();
+
+                if (!IsActive || WindowState == WindowState.Minimized)
+                {
+                    _trayManager.ShowBalloon($"📱 {notif.AppName}: {notif.Title}", notif.Text);
+                }
+            });
         }
 
         private void NotificationAction_Click(object sender, RoutedEventArgs e)
@@ -892,7 +1047,18 @@ namespace LinkSync.Desktop
                         break;
                     case "view":
                     default:
-                        SwitchTab(NavTab.Photos);
+                        if (notif.AppName.Equals("Photos", StringComparison.OrdinalIgnoreCase))
+                        {
+                            SwitchTab(NavTab.Photos);
+                        }
+                        else if (notif.AppName.Equals("Clipboard", StringComparison.OrdinalIgnoreCase))
+                        {
+                            SwitchTab(NavTab.Clipboard);
+                        }
+                        else
+                        {
+                            BtnStartMirror_Click(sender, e);
+                        }
                         break;
                 }
             }
@@ -1162,6 +1328,7 @@ namespace LinkSync.Desktop
                     AssociatedData = sms.Address
                 });
                 while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
+                UpdateNotificationBadgeCounts();
 
                 // Refresh thread list from mobile node
                 _ = _server.RequestSmsListAsync();
@@ -1189,6 +1356,7 @@ namespace LinkSync.Desktop
                             AssociatedData = call.Number
                         });
                         while (Notifications.Count > 30) Notifications.RemoveAt(Notifications.Count - 1);
+                UpdateNotificationBadgeCounts();
                     }
 
                     CardActiveCall.Visibility = Visibility.Visible;

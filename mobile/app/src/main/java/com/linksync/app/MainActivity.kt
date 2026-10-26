@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         if (allGranted) {
             startSyncService()
             loadPhoneMediaFiles()
+            checkNotificationListenerAccess()
         } else {
             Toast.makeText(this, "Storage and media permissions required for LinkSync", Toast.LENGTH_SHORT).show()
         }
@@ -481,8 +482,36 @@ class MainActivity : AppCompatActivity() {
         if (missing.isEmpty()) {
             startSyncService()
             loadPhoneMediaFiles()
+            checkNotificationListenerAccess()
         } else {
             permissionLauncher.launch(missing.toTypedArray())
+        }
+    }
+
+    private fun isNotificationListenerEnabled(): Boolean {
+        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        return flat != null && flat.contains(packageName)
+    }
+
+    private fun checkNotificationListenerAccess() {
+        if (!isNotificationListenerEnabled()) {
+            val prefs = getSharedPreferences("linksync_prefs", Context.MODE_PRIVATE)
+            val hasPrompted = prefs.getBoolean("notif_listener_prompted", false)
+            if (!hasPrompted) {
+                prefs.edit().putBoolean("notif_listener_prompted", true).apply()
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Sync All Phone Notifications")
+                    .setMessage("Allow LinkSync to forward your phone notifications (WhatsApp, Telegram, SMS, Banking OTPs, etc.) directly to your laptop?")
+                    .setPositiveButton("Enable in Settings") { _, _ ->
+                        try {
+                            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                        } catch (e: Exception) {
+                            Toast.makeText(this, "Please enable LinkSync in Notification Access settings", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    .setNegativeButton("Later", null)
+                    .show()
+            }
         }
     }
 
